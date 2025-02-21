@@ -62,12 +62,12 @@ public class Elevator extends SubsystemBase {
     limitSwitch3 = new DigitalInput(3);
     limitSwitch4 = new DigitalInput(4);
   }
-  public Command elevatorSetSpeed(double volts){
+  public Command elevatorSetVoltage(double volts){
     return parallel(
       run(() -> elevatorMotor1.setVoltage(volts)).finallyDo(() -> elevatorMotor1.setVoltage(0)),
       run(() -> elevatorMotor2.setVoltage(volts)).finallyDo(() -> elevatorMotor2.setVoltage(0)));
   }
-  public Command tiltSetSpeed(double volts){
+  public Command tiltSetVoltage(double volts){
     return parallel(
       run(() -> tiltMotor1.setVoltage(volts)).finallyDo(() -> tiltMotor1.setVoltage(0)),
       run(() -> tiltMotor2.setVoltage(volts)).finallyDo(() -> tiltMotor2.setVoltage(0)));
