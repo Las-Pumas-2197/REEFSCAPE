@@ -37,7 +37,7 @@ public class EncoderManagerMax extends SubsystemBase {
   public void runData() {
 
     //check encoder state to allow encoder position update
-    enc_at_zero = Math.abs(enc_delta) < 0.1;
+    enc_at_zero = Math.abs(enc_delta) < 0.05;
     enc_delta_not_rational = Math.abs(enc_delta) > 4;
 
     //troubleshooting

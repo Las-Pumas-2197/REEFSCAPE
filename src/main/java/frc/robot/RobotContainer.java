@@ -11,6 +11,7 @@ import org.opencv.core.Mat;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -19,7 +20,9 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.drive.DriveSubsystem;
+import frc.robot.subsystems.elevator.Elevator;
+import frc.robot.subsystems.elevator.Manipulator;
 import frc.robot.utils.Constants.OIConstants;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -35,17 +38,22 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 public class RobotContainer {
   // The robot's subsystems
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
+  private final Elevator m_Elevator = new Elevator();
+  private final Manipulator m_Manipulator = new Manipulator();
   private final PowerDistribution pdh = new PowerDistribution(1, ModuleType.kRev);
+
+  private final SlewRateLimiter elevator_slew = new SlewRateLimiter(3);
 
   // The driver's controller
   private final CommandXboxController m_driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
+  private final CommandXboxController m_operatorController = new CommandXboxController(OIConstants.kOperatorControllerPort);
 
   //auto trajectory
   private final PathPlannerAuto auto1 = new PathPlannerAuto("Auto1");
 
   private double headingtransformed;
   private boolean useHeadingCorrection = true;
-
+  private boolean fieldOriented;
   private final Field2d m_field = new Field2d();
 
   /**
@@ -64,11 +72,12 @@ public class RobotContainer {
                 -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriveDeadband),
                 -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriveDeadband),
                 -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriveDeadband),
-                true,
-                useHeadingCorrection,
+                fieldOriented,
+                false,
                 headingtransformed
               ),
             m_robotDrive));
+    
   }
 
   /**
@@ -81,11 +90,26 @@ public class RobotContainer {
    * {@link JoystickButton}.
    */
   private void configureButtonBindings() {
+
+    //drive bindings
     m_driverController.rightBumper().whileTrue(run(() -> m_robotDrive.setX(), m_robotDrive));
     m_driverController.a().onTrue(runOnce(() -> m_robotDrive.zeroHeading()));
     m_driverController.x().onTrue(runOnce(() -> m_robotDrive.resetOdometry(new Pose2d())));
     m_driverController.rightStick().onTrue(runOnce(() -> triggerHeadingCorrection()));
+    m_driverController.y().whileTrue(run(() -> fieldOriented = false)).whileFalse(run(() -> fieldOriented = true));
+
+    //operator bindings
+    m_operatorController.povUp().whileTrue(run(() -> m_Elevator.elevatorSetVoltage(-3))).onFalse(runOnce(() -> m_Elevator.elevatorSetVoltage(0)));
+    m_operatorController.povDown().whileTrue(run(() -> m_Elevator.elevatorSetVoltage(3))).onFalse(runOnce(() -> m_Elevator.elevatorSetVoltage(0)));
+    m_operatorController.povLeft().whileTrue(run(()-> m_Elevator.tiltSetVoltage(1.5))).onFalse(runOnce(() -> m_Elevator.tiltSetVoltage(0)));
+    m_operatorController.povRight().whileTrue(run(()-> m_Elevator.tiltSetVoltage(-1.5))).onFalse(runOnce(() -> m_Elevator.tiltSetVoltage(0)));
+    m_operatorController.y().whileTrue(run(() -> m_Manipulator.manipulatorTiltSetVoltage(3))).onFalse(runOnce(() -> m_Manipulator.manipulatorTiltSetVoltage(0)));
+    m_operatorController.a().whileTrue(run(() -> m_Manipulator.manipulatorTiltSetVoltage(-3))).onFalse(runOnce(() -> m_Manipulator.manipulatorTiltSetVoltage(0)));
+    m_operatorController.x().whileTrue(run(() -> m_Manipulator.manipulatorSpinSetVoltage(12))).onFalse(runOnce(() -> m_Manipulator.manipulatorSpinSetVoltage(0)));
+    m_operatorController.b().whileTrue(run(() -> m_Manipulator.manipulatorSpinSetVoltage(-12))).onFalse(runOnce(() -> m_Manipulator.manipulatorSpinSetVoltage(0)));
   }
+
+
   public void triggerHeadingCorrection(){
     if (useHeadingCorrection == true){
       useHeadingCorrection = false;
@@ -111,7 +135,8 @@ public class RobotContainer {
 
 
   public Command exampleauto() {
-    return auto1;
+    //return auto1;
+    return null;
   }
 
   public void telemetry() {
@@ -121,6 +146,9 @@ public class RobotContainer {
     SmartDashboard.putNumber("Heading", m_robotDrive.getPose().getRotation().getRadians());
     SmartDashboard.putNumber("FL module drive speed", m_robotDrive.getStates()[0].speedMetersPerSecond);
     SmartDashboard.putNumber("Voltage", pdh.getVoltage());
+    SmartDashboard.putNumber("x axis", m_driverController.getLeftX());
+    SmartDashboard.putNumber("y axis", m_driverController.getLeftY());
+    SmartDashboard.putNumber("z axis", m_driverController.getRightX());
     //Chassis Speeds
     SmartDashboard.putNumber("ChassisSpeedX", m_robotDrive.getSpeeds().vxMetersPerSecond);
     SmartDashboard.putNumber("ChassisSpeedY", m_robotDrive.getSpeeds().vyMetersPerSecond);
@@ -128,5 +156,12 @@ public class RobotContainer {
     SmartDashboard.putNumber("Trigger Heading", headingtransformed);
     SmartDashboard.putNumber("Velocity", Math.sqrt(Math.pow(m_robotDrive.getSpeeds().vxMetersPerSecond, 2) + Math.pow(m_robotDrive.getSpeeds().vyMetersPerSecond, 2)));
     SmartDashboard.putData(m_field);
+
+    //Elevator Encoders
+    double[] ElevatorEncoders = m_Elevator.getEncoderPositions();
+    SmartDashboard.putNumber("Elevator Drive Encoder 1 Position", ElevatorEncoders[0]);
+    SmartDashboard.putNumber("Elevator Drive Encoder 2 Position", ElevatorEncoders[1]);
+    SmartDashboard.putNumber("Elevator Tilt Encoder 1 Position", ElevatorEncoders[2]);
+    SmartDashboard.putNumber("Elevator Tilt Encoder 2 Position", ElevatorEncoders[3]);
   }
 }
