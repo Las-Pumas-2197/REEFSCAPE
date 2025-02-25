@@ -8,7 +8,8 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.robot.utils.Constants.DriveConstants;
+import frc.robot.subsystems.drive.utils.SwerveConfigs;
+import frc.robot.subsystems.drive.utils.Constants.DriveConstants;
 
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;

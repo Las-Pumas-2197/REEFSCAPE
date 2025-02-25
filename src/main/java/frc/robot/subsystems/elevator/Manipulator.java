@@ -6,7 +6,6 @@ package frc.robot.subsystems.elevator;
 
 import com.revrobotics.spark.SparkMax;
 
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 public class Manipulator extends SubsystemBase {
@@ -21,6 +20,7 @@ public class Manipulator extends SubsystemBase {
 public void manipulatorTiltSetVoltage(double volts){
    tiltMotor.setVoltage(volts);
 }
+
 public void manipulatorSpinSetVoltage(double volts){
    spinMotor.setVoltage(volts);
 }

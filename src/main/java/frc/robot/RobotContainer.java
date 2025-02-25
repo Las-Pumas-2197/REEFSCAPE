@@ -6,24 +6,19 @@ package frc.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 
-import org.opencv.core.Mat;
-
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.drive.DriveSubsystem;
+import frc.robot.subsystems.drive.utils.Constants.OIConstants;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.Manipulator;
-import frc.robot.utils.Constants.OIConstants;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -42,19 +37,19 @@ public class RobotContainer {
   private final Manipulator m_Manipulator = new Manipulator();
   private final PowerDistribution pdh = new PowerDistribution(1, ModuleType.kRev);
 
-  private final SlewRateLimiter elevator_slew = new SlewRateLimiter(3);
-
   // The driver's controller
   private final CommandXboxController m_driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
   private final CommandXboxController m_operatorController = new CommandXboxController(OIConstants.kOperatorControllerPort);
 
-  //auto trajectory
+  //auto routines
   private final PathPlannerAuto auto1 = new PathPlannerAuto("Auto1");
 
-  private double headingtransformed;
-  private boolean useHeadingCorrection = true;
-  private boolean fieldOriented;
+  //field 2d object for pose estimation visualization in elastic
   private final Field2d m_field = new Field2d();
+
+  private double headingtransformed;
+  private boolean useHeadingCorrection;
+  private boolean fieldOriented;
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -92,24 +87,21 @@ public class RobotContainer {
   private void configureButtonBindings() {
 
     //drive bindings
+    //set modules to be in X position to block
     m_driverController.rightBumper().whileTrue(run(() -> m_robotDrive.setX(), m_robotDrive));
+
+    //zero heading and odometry as needed
     m_driverController.a().onTrue(runOnce(() -> m_robotDrive.zeroHeading()));
     m_driverController.x().onTrue(runOnce(() -> m_robotDrive.resetOdometry(new Pose2d())));
-    m_driverController.rightStick().onTrue(runOnce(() -> triggerHeadingCorrection()));
-    m_driverController.y().whileTrue(run(() -> fieldOriented = false)).whileFalse(run(() -> fieldOriented = true));
 
-    //operator bindings
-    m_operatorController.povUp().whileTrue(run(() -> m_Elevator.elevatorSetVoltage(-3))).onFalse(runOnce(() -> m_Elevator.elevatorSetVoltage(0)));
-    m_operatorController.povDown().whileTrue(run(() -> m_Elevator.elevatorSetVoltage(3))).onFalse(runOnce(() -> m_Elevator.elevatorSetVoltage(0)));
-    m_operatorController.povLeft().whileTrue(run(()-> m_Elevator.tiltSetVoltage(1.5))).onFalse(runOnce(() -> m_Elevator.tiltSetVoltage(0)));
-    m_operatorController.povRight().whileTrue(run(()-> m_Elevator.tiltSetVoltage(-1.5))).onFalse(runOnce(() -> m_Elevator.tiltSetVoltage(0)));
-    m_operatorController.y().whileTrue(run(() -> m_Manipulator.manipulatorTiltSetVoltage(3))).onFalse(runOnce(() -> m_Manipulator.manipulatorTiltSetVoltage(0)));
-    m_operatorController.a().whileTrue(run(() -> m_Manipulator.manipulatorTiltSetVoltage(-3))).onFalse(runOnce(() -> m_Manipulator.manipulatorTiltSetVoltage(0)));
-    m_operatorController.x().whileTrue(run(() -> m_Manipulator.manipulatorSpinSetVoltage(12))).onFalse(runOnce(() -> m_Manipulator.manipulatorSpinSetVoltage(0)));
-    m_operatorController.b().whileTrue(run(() -> m_Manipulator.manipulatorSpinSetVoltage(-12))).onFalse(runOnce(() -> m_Manipulator.manipulatorSpinSetVoltage(0)));
+    //runs first lambda when depressed, runs second lambda when released
+    m_driverController.y().whileTrue(runEnd(() -> fieldOriented = false, () -> fieldOriented = true));
+
+    //runs every time right stick becomes true, sets heading correction to false or true depending on it's current state, functions as toggle
+    m_driverController.rightStick().onTrue(runOnce(() -> useHeadingCorrection = useHeadingCorrection ? false : true));
   }
 
-
+  //does not work due to how void is called in command format
   public void triggerHeadingCorrection(){
     if (useHeadingCorrection == true){
       useHeadingCorrection = false;
@@ -149,6 +141,7 @@ public class RobotContainer {
     SmartDashboard.putNumber("x axis", m_driverController.getLeftX());
     SmartDashboard.putNumber("y axis", m_driverController.getLeftY());
     SmartDashboard.putNumber("z axis", m_driverController.getRightX());
+    
     //Chassis Speeds
     SmartDashboard.putNumber("ChassisSpeedX", m_robotDrive.getSpeeds().vxMetersPerSecond);
     SmartDashboard.putNumber("ChassisSpeedY", m_robotDrive.getSpeeds().vyMetersPerSecond);
@@ -161,7 +154,5 @@ public class RobotContainer {
     double[] ElevatorEncoders = m_Elevator.getEncoderPositions();
     SmartDashboard.putNumber("Elevator Drive Encoder 1 Position", ElevatorEncoders[0]);
     SmartDashboard.putNumber("Elevator Drive Encoder 2 Position", ElevatorEncoders[1]);
-    SmartDashboard.putNumber("Elevator Tilt Encoder 1 Position", ElevatorEncoders[2]);
-    SmartDashboard.putNumber("Elevator Tilt Encoder 2 Position", ElevatorEncoders[3]);
   }
 }

@@ -1,11 +1,11 @@
-package frc.robot.subsystems.drive;
+package frc.robot.subsystems.drive.utils;
 
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
-import frc.robot.utils.Constants.ModuleConstants;
+import frc.robot.subsystems.drive.utils.Constants.ModuleConstants;
 
 public final class SwerveConfigs {
     public static final class MAXSwerveModule {
