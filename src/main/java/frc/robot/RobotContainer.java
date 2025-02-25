@@ -16,13 +16,14 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.drive.DriveSubsystem;
-import frc.robot.subsystems.drive.utils.Constants.OIConstants;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.Manipulator;
+import frc.robot.utils.Constants.OIConstants;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -46,7 +47,8 @@ public class RobotContainer {
 
   //field 2d object for pose estimation visualization in elastic
   private final Field2d m_field = new Field2d();
-
+  
+  //used in operation of drivetrain
   private double headingtransformed;
   private boolean useHeadingCorrection;
   private boolean fieldOriented;
@@ -68,7 +70,7 @@ public class RobotContainer {
                 -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriveDeadband),
                 -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriveDeadband),
                 fieldOriented,
-                false,
+                useHeadingCorrection,
                 headingtransformed
               ),
             m_robotDrive));
@@ -97,8 +99,11 @@ public class RobotContainer {
     //runs first lambda when depressed, runs second lambda when released
     m_driverController.y().whileTrue(runEnd(() -> fieldOriented = false, () -> fieldOriented = true));
 
-    //runs every time right stick becomes true, sets heading correction to false or true depending on it's current state, functions as toggle
+    //runs every time right stick becomes true, functions as toggle
     m_driverController.rightStick().onTrue(runOnce(() -> useHeadingCorrection = useHeadingCorrection ? false : true));
+
+    //increment axis data using below function
+    m_driverController.rightTrigger(headingtransformed);
   }
 
   //does not work due to how void is called in command format
@@ -111,7 +116,8 @@ public class RobotContainer {
       useHeadingCorrection = true;
     }
   }
-
+  
+  //should work
   public void updateHeading() {
     headingtransformed = 
     MathUtil.angleModulus(
@@ -124,7 +130,6 @@ public class RobotContainer {
   public double getJoystickHeading(){
     return MathUtil.angleModulus(-(Math.atan2(m_driverController.getRawAxis(5), -m_driverController.getRawAxis(4))) + 0.5 * Math.PI);
   }
-
 
   public Command exampleauto() {
     //return auto1;

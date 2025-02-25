@@ -25,8 +25,8 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.drive.utils.Constants.AutoConstants;
-import frc.robot.subsystems.drive.utils.Constants.DriveConstants;
+import frc.robot.utils.Constants.AutoConstants;
+import frc.robot.utils.Constants.DriveConstants;
 
 public class DriveSubsystem extends SubsystemBase {
   // Create MAXSwerveModules
