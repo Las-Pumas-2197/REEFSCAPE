@@ -58,23 +58,19 @@ public final class Configs {
 
         public static final class ElevatorConfigs {
                 public static final SparkMaxConfig tiltConfig = new SparkMaxConfig();
-                public static final SparkMaxConfig leftConfig = new SparkMaxConfig();
-                public static final SparkMaxConfig rightConfig = new SparkMaxConfig();
+                public static final SparkMaxConfig elevConfig = new SparkMaxConfig();
 
                 static {
                         tiltConfig
                                 .idleMode(IdleMode.kBrake)
                                 .smartCurrentLimit(ElevatorConstants.tilt_maxcurrent);
-                        rightConfig
+                        elevConfig
                                 .idleMode(IdleMode.kBrake)
-                                .inverted(true)
+                                .inverted(false)
                                 .smartCurrentLimit(ElevatorConstants.elev_maxcurrent);
-                        rightConfig.encoder
+                        elevConfig.encoder
                                 .positionConversionFactor(ElevatorConstants.elev_posfactor)
                                 .velocityConversionFactor(ElevatorConstants.elev_velfactor);
-                        leftConfig
-                                .idleMode(IdleMode.kBrake)
-                                .smartCurrentLimit(ElevatorConstants.elev_maxcurrent);
                 }
 
         }

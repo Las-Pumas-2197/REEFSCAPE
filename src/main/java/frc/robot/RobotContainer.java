@@ -87,7 +87,6 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
 
-    //drive bindings
     //set modules to be in X position to block
     m_driverController.rightBumper().whileTrue(run(() -> m_robotDrive.setX(), m_robotDrive));
 
@@ -101,21 +100,24 @@ public class RobotContainer {
     //runs every time right stick becomes true, functions as toggle
     m_driverController.rightStick().onTrue(runOnce(() -> useHeadingCorrection = useHeadingCorrection ? false : true));
 
-    //increment axis data using below function
-  }
+    //increment desired heading data in inline command
+    m_driverController.leftTrigger(OIConstants.kDriveDeadband)
+      .or(m_driverController.rightTrigger(OIConstants.kDriveDeadband))
+      .whileTrue(run(() -> headingtransformed = headingtransformed + 
+      ((MathUtil.applyDeadband(m_driverController.getLeftTriggerAxis(), OIConstants.kDriveDeadband) + 
+      -MathUtil.applyDeadband(m_driverController.getRightTriggerAxis(), OIConstants.kDriveDeadband))*0.04)));
 
-  //does not work due to how void is called in command format
-  public void triggerHeadingCorrection(){
-    if (useHeadingCorrection == true){
-      useHeadingCorrection = false;
-    } else {
-      headingtransformed = m_robotDrive.getHeading();
-      updateHeading();
-      useHeadingCorrection = true;
-    }
+    //tilt forward and back
+    m_operatorController.povLeft().whileTrue(runEnd(() -> m_Elevator.tiltSetVoltage(3), () -> m_Elevator.tiltSetVoltage(0)));
+    m_operatorController.povRight().whileTrue(runEnd(() -> m_Elevator.tiltSetVoltage(-3), () -> m_Elevator.tiltSetVoltage(0)));
+
+    //operate elevator up and down manually by using left bumper and pov up/down
+    m_operatorController.povDown().and(m_operatorController.leftBumper()).whileTrue(run(() -> m_Elevator.elevatorSetVoltage(-3, true)));
+    m_operatorController.povUp().and(m_operatorController.leftBumper()).whileTrue(run(() -> m_Elevator.elevatorSetVoltage(3, true)));
+
   }
   
-  //should work
+  //should work, formatted into in-line command above in bindings
   public void updateHeading() {
     headingtransformed = 
     MathUtil.angleModulus(
@@ -155,7 +157,8 @@ public class RobotContainer {
 
     //Elevator Encoders
     double[] ElevatorEncoders = m_Elevator.getEncoderPositions();
-    SmartDashboard.putNumber("Elevator Drive Encoder 1 Position", ElevatorEncoders[0]);
-    SmartDashboard.putNumber("Elevator Drive Encoder 2 Position", ElevatorEncoders[1]);
+    SmartDashboard.putNumber("Elevator Encoder Right", ElevatorEncoders[0]);
+    SmartDashboard.putNumber("Elevator Encoder Left", ElevatorEncoders[1]);
+    SmartDashboard.putNumber("Elevator Encoder Avg", ElevatorEncoders[2]);
   }
 }

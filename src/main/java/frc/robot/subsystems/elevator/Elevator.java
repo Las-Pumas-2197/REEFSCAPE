@@ -7,6 +7,8 @@ package frc.robot.subsystems.elevator;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 
+//import static edu.wpi.first.wpilibj2.command.Commands.*;
+
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
@@ -16,6 +18,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utils.Configs.ElevatorConfigs;
 import frc.robot.utils.Constants.ElevatorConstants;
@@ -40,10 +43,9 @@ public class Elevator extends SubsystemBase {
   private final DigitalInput sw_elevlower;
 
   //slew limiter for open loop mode and bool to enable/disable
-  private final SlewRateLimiter slew_rightmotor;
-  private final SlewRateLimiter slew_leftmotor;
+  private final SlewRateLimiter slew_elev;
   private static final double slew_ratelimit = 12; //units per second
-  private boolean var_enableslew;
+  private boolean var_enableOL;
   
   //raw pos values from encoder manager
   private double var_elevrightheight;
@@ -59,8 +61,8 @@ public class Elevator extends SubsystemBase {
     //elevator motors and write configs
     m_elevright = new SparkMax(12, MotorType.kBrushless);
     m_elevleft = new SparkMax(13, MotorType.kBrushless);
-    m_elevright.configure(ElevatorConfigs.rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    m_elevleft.configure(ElevatorConfigs.leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    m_elevright.configure(ElevatorConfigs.elevConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    m_elevleft.configure(ElevatorConfigs.elevConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     //tilt motors and write configs
     m_tiltright = new SparkMax(10, MotorType.kBrushless);
@@ -82,45 +84,51 @@ public class Elevator extends SubsystemBase {
     sw_elevlower = new DigitalInput(1);
 
     //slews for open loop control
-    slew_rightmotor = new SlewRateLimiter(slew_ratelimit);
-    slew_leftmotor = new SlewRateLimiter(slew_ratelimit);
+    slew_elev = new SlewRateLimiter(slew_ratelimit);
   }
 
   /**Operate the elevator in open-loop with safeties. Safeties can be disabled by passing a boolean.
    * @param volts Voltage to apply to the elevator motors.
    * @param enable_safties To override safeties or not, in case of limit switch failure. True = enabled.
    * @param slew_enabled To operate the elevator with slews enabled or not. True = enabled. DO NOT USE SLEWS WHEN IN CLOSED LOOP, BAD THINGS HAPPEN
+   * @param ff_enabled To operate the elevator with feed forwards enabled or not. True = enabled. Do not use when in closed loop. Slews 
    */
-  public void elevatorSetVoltage(double volts, boolean slew_enabled){
+  public void elevatorSetVoltage(double volts, boolean OL_enabled) {
 
-    //if either switch is triggered, check which one and transform volts
+    //if either switch is triggered, check which one and transform volts, else run elevator with passed volts
+    //disables slews and FFs to stop elevator immediately when limit switch is triggered
     if (sw_elevlower.get() || sw_elevupper.get()) {
       if (sw_elevlower.get()) {
-        var_enableslew = false;
+        var_enableOL = false;
         var_elevvolts = MathUtil.clamp(Math.abs(volts) + volts, -12, 12);
       }
       if (sw_elevupper.get()) {
-        var_enableslew = false;
+        var_enableOL = false;
         var_elevvolts = MathUtil.clamp(volts - Math.abs(volts), -12, 12);
       }
     } else {
-      var_enableslew = slew_enabled;
+      var_enableOL = OL_enabled;
       var_elevvolts = volts;
     }
   }
 
-  /** 
-   * Operate the elevator in closed-loop with safeties. Elevator will accelerate and decelerate to setpoint according to constraints.
+  /**Operate the elevator in closed-loop with safeties. Elevator will accelerate and decelerate to desired level according to constraints.
    * If limit switches are triggered, PID controller output will be negated through transformations in elevatorSetVoltage function.
-   * @param height The height in meters to set the eleelelelelevator to.
+   * @param height The height to set the elevator to in meters.
    */
-  public void elevatorSetHeight(double height) {
+  public Command elevatorSetHeight(double height) {
+      return runOnce(() -> pid_height.setGoal(height))
+      .andThen(() -> elevatorSetVoltage(
+        pid_height.calculate(var_elevheightavg) / ElevatorConstants.elev_maxvel * 12 + 
+        ff_height.calculate(pid_height.getSetpoint().velocity), false));
+  }
 
-    //set goal of PID controller to desired setpoint
-    pid_height.setGoal(height);
-    elevatorSetVoltage((
-      pid_height.calculate(var_elevheightavg) / ElevatorConstants.elev_maxvel) * 12 + 
-      ff_height.calculate(pid_height.getSetpoint().velocity), false);
+  /**Runs elevator down until the lower limit switch is triggered, then zeros the encoders. Used to home the encoders if there is drift.*/
+  public Command elevatorHome() {
+    return run(() -> elevatorSetVoltage(-6, true))
+           .until(() -> sw_elevlower.get())
+           .andThen(runOnce(() -> elevatorSetVoltage(0, false)))
+           .finallyDo(() -> resetEncoderPositions());
   }
 
   public void tiltSetVoltage(double volts){
@@ -149,14 +157,23 @@ public class Elevator extends SubsystemBase {
     };
   }
 
+  /**Resets the encoders for the elevator to zero. Only call when the elevator is in home state (fully retracted).*/
+  public void resetEncoderPositions() {
+    enc_elevleft.encoderReset();
+    enc_elevright.encoderReset();
+  }
+
   @Override
   public void periodic() {
   
-  //write volts to motors, deactivates slews if var_enableslew = false
-  if (var_enableslew) {
-    m_elevright.setVoltage(slew_rightmotor.calculate(var_elevvolts));
-    m_elevleft.setVoltage(slew_leftmotor.calculate(var_elevvolts));
+  //write volts to motors, if OL enabled, use FF and slews to control elevator better
+  if (var_enableOL) {
+    double volts;
+    volts = ff_height.calculate(slew_elev.calculate(var_elevvolts));
+    m_elevright.setVoltage(volts);
+    m_elevleft.setVoltage(volts);
   } else {
+    slew_elev.reset(0);
     m_elevright.setVoltage(var_elevvolts);
     m_elevleft.setVoltage(var_elevvolts);
   }
