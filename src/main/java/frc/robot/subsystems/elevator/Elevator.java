@@ -7,12 +7,11 @@ package frc.robot.subsystems.elevator;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 
-import java.util.function.IntFunction;
-
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -34,6 +33,7 @@ public class Elevator extends SubsystemBase {
   //PID controller, trapezoidal profile for height control
   private final TrapezoidProfile.Constraints prof_height;
   private final ProfiledPIDController pid_height;
+  private final ElevatorFeedforward ff_height;
 
   //limit switch status vars
   private final DigitalInput sw_elevupper;
@@ -48,10 +48,10 @@ public class Elevator extends SubsystemBase {
   //raw pos values from encoder manager
   private double var_elevrightheight;
   private double var_elevleftheight;
+  private double var_elevheightavg; //averaged height of elevator encoders
 
-  //applied volts to elevator and tilt motors
+  //applied volts to elevator
   private double var_elevvolts;
-  private double var_tiltvolts;
 
   /** Creates a new Elevator. */
   public Elevator() {
@@ -75,10 +75,11 @@ public class Elevator extends SubsystemBase {
     //pid controller
     prof_height = new TrapezoidProfile.Constraints(ElevatorConstants.elev_maxvel, ElevatorConstants.elev_maxacl);
     pid_height = new ProfiledPIDController(ElevatorConstants.elev_PIDkP, 0, ElevatorConstants.elev_PIDkD, prof_height);
+    ff_height = new ElevatorFeedforward(ElevatorConstants.elev_FFkS, ElevatorConstants.elev_FFkG, ElevatorConstants.elev_FFkV); //kA ignored due to high power
     
     //saftey switches
-    sw_elevupper = new DigitalInput(1);
-    sw_elevlower = new DigitalInput(2);
+    sw_elevupper = new DigitalInput(0);
+    sw_elevlower = new DigitalInput(1);
 
     //slews for open loop control
     slew_rightmotor = new SlewRateLimiter(slew_ratelimit);
@@ -88,28 +89,38 @@ public class Elevator extends SubsystemBase {
   /**Operate the elevator in open-loop with safeties. Safeties can be disabled by passing a boolean.
    * @param volts Voltage to apply to the elevator motors.
    * @param enable_safties To override safeties or not, in case of limit switch failure. True = enabled.
-   * @param slew_enabled To operate the elevator with slews enabled or not. True = enabled.
+   * @param slew_enabled To operate the elevator with slews enabled or not. True = enabled. DO NOT USE SLEWS WHEN IN CLOSED LOOP, BAD THINGS HAPPEN
    */
   public void elevatorSetVoltage(double volts, boolean slew_enabled){
-
-    //enable or disable slews
-    var_enableslew = slew_enabled;
 
     //if either switch is triggered, check which one and transform volts
     if (sw_elevlower.get() || sw_elevupper.get()) {
       if (sw_elevlower.get()) {
+        var_enableslew = false;
         var_elevvolts = MathUtil.clamp(Math.abs(volts) + volts, -12, 12);
       }
       if (sw_elevupper.get()) {
+        var_enableslew = false;
         var_elevvolts = MathUtil.clamp(volts - Math.abs(volts), -12, 12);
       }
     } else {
+      var_enableslew = slew_enabled;
       var_elevvolts = volts;
     }
   }
 
+  /** 
+   * Operate the elevator in closed-loop with safeties. Elevator will accelerate and decelerate to setpoint according to constraints.
+   * If limit switches are triggered, PID controller output will be negated through transformations in elevatorSetVoltage function.
+   * @param height The height in meters to set the eleelelelelevator to.
+   */
   public void elevatorSetHeight(double height) {
-    
+
+    //set goal of PID controller to desired setpoint
+    pid_height.setGoal(height);
+    elevatorSetVoltage((
+      pid_height.calculate(var_elevheightavg) / ElevatorConstants.elev_maxvel) * 12 + 
+      ff_height.calculate(pid_height.getSetpoint().velocity), false);
   }
 
   public void tiltSetVoltage(double volts){
@@ -128,19 +139,20 @@ public class Elevator extends SubsystemBase {
   }
 
   /**Returns an array containing the positions returned by the encoders.
-   * @return The array. Index 0 = right, index 1 = left.
+   * @return The array. Index 0 = right, index 1 = left, 2 = averaged elevator height.
    */
   public double[] getEncoderPositions(){
     return new double[] {
       var_elevrightheight,
-      var_elevleftheight
+      var_elevleftheight,
+      var_elevheightavg
     };
   }
 
   @Override
   public void periodic() {
-
-    //write volts to motors, deactivate slews if disabled
+  
+  //write volts to motors, deactivates slews if var_enableslew = false
   if (var_enableslew) {
     m_elevright.setVoltage(slew_rightmotor.calculate(var_elevvolts));
     m_elevleft.setVoltage(slew_leftmotor.calculate(var_elevvolts));
@@ -151,6 +163,7 @@ public class Elevator extends SubsystemBase {
 
   //write encoder position to internal var
   var_elevrightheight = enc_elevright.getPos();
-  var_elevleftheight = enc_elevright.getPos();
+  var_elevleftheight = enc_elevleft.getPos();
+  var_elevheightavg = (var_elevrightheight + var_elevleftheight) / 2;
   }
 }

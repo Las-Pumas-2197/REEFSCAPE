@@ -109,18 +109,18 @@ public final class Constants {
     //controller settings
     public static final int elev_maxcurrent = 40;
     public static final int tilt_maxcurrent = 40;
-    public static final double elev_posfactor = 0.16900; //meters, 0.55449 feet
+    public static final double elev_posfactor = 0.05632; //meters
     public static final double elev_velfactor = elev_posfactor / 60; //meters per second
-    public static final double elev_enc_maxrational = 0.03552; //meters, 0.11656 feet, max possible feet traveled per 20ms at max speed
+    public static final double elev_enc_maxrational = 0.01184; //meters per 20ms
     //PIDF settings, needs characterized
-    public static final double elev_FFkS = 0;
-    public static final double elev_FFkV = 0;
-    public static final double elev_FFkG = 0;
-    public static final double elev_FFkA = 0;
-    public static final double elev_PIDkP = 0;
+    public static final double elev_FFkS = 0; //needs measured
+    public static final double elev_FFkV = 0.04933;
+    public static final double elev_FFkG = 0; //needs measured
+    public static final double elev_FFkA = 0; //not used currently, may not be needed
+    public static final double elev_PIDkP = 1;
     public static final double elev_PIDkD = 0;
-    public static final double elev_maxvel = 1; //meters per second
-    public static final double elev_maxacl = 1; //meters per second ^ 2
+    public static final double elev_maxvel = 0.59207; //meters per second
+    public static final double elev_maxacl = 0.25; //meters per second ^ 2
   }
 
   public static final class ManipulatorConstants {
