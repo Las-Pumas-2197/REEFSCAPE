@@ -127,15 +127,17 @@ public final class Constants {
     //controller settings
     public static final int wrist_maxcurrent = 40;
     public static final int spike_maxcurrent = 20;
-    public static final double wrist_posfactor = 0; //rads
-    public static final double wrist_velfactor = 0; //rads/s
+    public static final double wrist_posfactor =  0.062831; //rads
+    public static final double wrist_velfactor = 0.001047; //rads/s
     public static final double wrist_maxrational = 0;
     //PIDF settings, needs characterized
+    public static final double wrist_maxVel = 2.97192;
+    public static final double wrist_maxAccel = 5.94384; 
     public static final double wrist_FFkS = 0;
-    public static final double wrist_FFkV = 0;
+    public static final double wrist_FFkV = 0.49532;
     public static final double wrist_FFkG = 0;
     public static final double wrist_FFkA = 0;
-    public static final double wrist_PIDkP = 0;
+    public static final double wrist_PIDkP = 0.1;
     public static final double wrist_PIDkD = 0;
   }
 

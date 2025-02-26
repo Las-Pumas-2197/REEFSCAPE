@@ -6,6 +6,7 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import frc.robot.utils.Constants.ElevatorConstants;
+import frc.robot.utils.Constants.ManipulatorConstants;
 import frc.robot.utils.Constants.ModuleConstants;
 
 public final class Configs {
@@ -72,6 +73,26 @@ public final class Configs {
                                 .positionConversionFactor(ElevatorConstants.elev_posfactor)
                                 .velocityConversionFactor(ElevatorConstants.elev_velfactor);
                 }
+
+        }
+
+        public static final class ManipulatorConfigs {
+                public static final SparkMaxConfig wristConfig = new SparkMaxConfig();
+                public static final SparkMaxConfig shootConfig = new SparkMaxConfig();
+
+                static {
+                  wristConfig
+                        .idleMode(IdleMode.kBrake)
+                        .smartCurrentLimit(ManipulatorConstants.wrist_maxcurrent);
+                  shootConfig
+                  .idleMode(IdleMode.kBrake)
+                  .smartCurrentLimit(ManipulatorConstants.spike_maxcurrent);
+                
+                  wristConfig.encoder
+                                .positionConversionFactor(ManipulatorConstants.wrist_posfactor)
+                                .velocityConversionFactor(ManipulatorConstants.wrist_velfactor);
+                }
+
 
         }
 }
