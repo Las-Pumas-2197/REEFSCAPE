@@ -111,10 +111,10 @@ public class RobotContainer {
     m_operatorController.povLeft().whileTrue(runEnd(() -> m_Elevator.tiltSetVoltage(3), () -> m_Elevator.tiltSetVoltage(0)));
     m_operatorController.povRight().whileTrue(runEnd(() -> m_Elevator.tiltSetVoltage(-3), () -> m_Elevator.tiltSetVoltage(0)));
 
-    //operate elevator up and down manually by using left bumper and pov up/down
+    //operate elevator up and down manually by using left bumper and pov up/down as well as homing
     m_operatorController.povDown().and(m_operatorController.leftBumper()).whileTrue(run(() -> m_Elevator.elevatorSetVoltage(-3, true)));
     m_operatorController.povUp().and(m_operatorController.leftBumper()).whileTrue(run(() -> m_Elevator.elevatorSetVoltage(3, true)));
-
+    m_operatorController.leftStick().and(m_operatorController.leftBumper().whileTrue(runOnce(() -> m_Elevator.elevatorHome())));
   }
   
   //should work, formatted into in-line command above in bindings
