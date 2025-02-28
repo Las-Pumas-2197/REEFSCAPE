@@ -150,7 +150,7 @@ public class Elevator extends SubsystemBase {
     m_tiltleft.setVoltage(volts);
   }
 
-  public Command setElevator() {
+  public Command lockElevator() {
     return runOnce(() -> elTimer.start()).andThen(run(() ->
       tiltSetVoltage(3)
     )).until(() -> elTimer.get() > 0.5).andThen(runOnce(() -> 

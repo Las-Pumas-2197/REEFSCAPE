@@ -53,6 +53,10 @@ public class RobotContainer {
   private boolean useHeadingCorrection;
   private boolean fieldOriented;
 
+  //used in operation of elevator
+  private boolean elevator_enableCL;
+  private double elevator_volts;
+
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -62,6 +66,10 @@ public class RobotContainer {
 
     //camera server
     CameraServer.startAutomaticCapture();
+
+    //set starting options
+    useHeadingCorrection = true;
+    fieldOriented = true;
 
     // Configure default commands
     m_robotDrive.setDefaultCommand(
@@ -115,14 +123,23 @@ public class RobotContainer {
     m_operatorController.povLeft().whileTrue(runEnd(() -> m_Elevator.tiltSetVoltage(3), () -> m_Elevator.tiltSetVoltage(0)));
     m_operatorController.povRight().whileTrue(runEnd(() -> m_Elevator.tiltSetVoltage(-3), () -> m_Elevator.tiltSetVoltage(0)));
 
+    //manipulator primitves
     m_operatorController.y().whileTrue(run(() -> m_Manipulator.manipulatorTiltSetVoltage(3))).whileFalse(runOnce(() -> m_Manipulator.manipulatorTiltSetVoltage(0)));
     m_operatorController.a().whileTrue(run(() -> m_Manipulator.manipulatorTiltSetVoltage(-3))).whileFalse(runOnce(() -> m_Manipulator.manipulatorTiltSetVoltage(0)));
     m_operatorController.x().whileTrue(run(() -> m_Manipulator.manipulatorSpinSetVoltage(12))).whileFalse(runOnce(() -> m_Manipulator.manipulatorSpinSetVoltage(0)));
     m_operatorController.b().whileTrue(run(() -> m_Manipulator.manipulatorSpinSetVoltage(-12))).whileFalse(runOnce(() -> m_Manipulator.manipulatorSpinSetVoltage(0)));
 
-    //operate elevator up and down manually by using left bumper and pov up/down as well as homing
-    m_operatorController.povDown().and(m_operatorController.leftBumper()).whileTrue(run(() -> m_Elevator.elevatorSetVoltage(-4.5, true))).whileFalse(runOnce(() -> m_Elevator.elevatorSetVoltage(0, true)));
-    m_operatorController.povUp().and(m_operatorController.leftBumper()).whileTrue(run(() -> m_Elevator.elevatorSetVoltage(6, true))).whileFalse(runOnce(() -> m_Elevator.elevatorSetVoltage(0, true)));
+    //elevator enable and voltage writes
+    m_operatorController.leftBumper().onTrue(runOnce(() -> elevator_enableCL = elevator_enableCL ? false : true));
+    
+    if (elevator_enableCL = false) {
+      m_Elevator.elevatorEnable(elevator_volts, true);
+      m_operatorController.povUp().whileTrue(run(() -> elevator_volts = 3)).whileFalse(runOnce(() -> elevator_volts = 0));
+      m_operatorController.povDown().whileTrue(run(() -> elevator_volts = -3)).whileFalse(runOnce(() -> elevator_volts = 0));
+    } else {
+
+    }
+
   }
   
   //should work, formatted into in-line command above in bindings
@@ -138,9 +155,11 @@ public class RobotContainer {
   public double getJoystickHeading(){
     return MathUtil.angleModulus(-(Math.atan2(m_driverController.getRawAxis(5), -m_driverController.getRawAxis(4))) + 0.5 * Math.PI);
   }
+
   public Command initializeElevator(){
-    return m_Elevator.setElevator();
+    return m_Elevator.lockElevator();
   }
+
   public Command exampleauto() {
     //return auto1;
     return null;
