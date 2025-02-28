@@ -117,7 +117,7 @@ public final class Constants {
     public static final double elev_FFkV = 0.04933;
     public static final double elev_FFkG = 0; //needs measured
     public static final double elev_FFkA = 0; //not used currently, may not be needed
-    public static final double elev_PIDkP = 1;
+    public static final double elev_PIDkP = .1;
     public static final double elev_PIDkD = 0;
     public static final double elev_maxvel = 0.59207; //meters per second
     public static final double elev_maxacl = 0.25; //meters per second ^ 2
@@ -149,6 +149,7 @@ public final class Constants {
     public static final double elev_L3height = 0;
     public static final double elev_L4height = 0;
     public static final double elev_loadheight = 0;
+    public static final double elev_maxheight = 0;
     //reef angle calibration data
     public static final double wrist_L1angle = 0;
     public static final double wrist_L2angle = 0;

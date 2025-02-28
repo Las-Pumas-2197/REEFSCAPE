@@ -16,7 +16,6 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
  */
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
-  private Command m_ElevatorInit;
   private RobotContainer m_robotContainer;
 
   /**
@@ -57,7 +56,11 @@ public class Robot extends TimedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    m_ElevatorInit = m_robotContainer.initializeElevator();
+    
+    //tilt elevator forward
+    m_robotContainer.initializeElevator();
+
+    //example auto command
     m_autonomousCommand = m_robotContainer.exampleauto();
 
     /*
@@ -68,7 +71,6 @@ public class Robot extends TimedRobot {
      */
 
     // schedule the autonomous command (example)
-    m_ElevatorInit.schedule();
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
     }
@@ -93,7 +95,6 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    m_robotContainer.updateHeading();
   }
 
   @Override

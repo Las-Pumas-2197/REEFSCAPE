@@ -5,7 +5,6 @@
 package frc.robot.subsystems.elevator;
 
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.servohub.ServoHub.ResetMode;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.PersistMode;
 
@@ -51,17 +50,18 @@ public class Manipulator extends SubsystemBase {
     ff_wrist = new ArmFeedforward(Constants.ManipulatorConstants.wrist_FFkS, Constants.ManipulatorConstants.wrist_FFkG, Constants.ManipulatorConstants.wrist_FFkV);
   }
 
-public Command manipulatorSetAngle(double angle){
+public Command setAngle(double angle){
   return runOnce(() -> pid_wrist.setGoal(angle)).andThen(runEnd(() ->
-  manipulatorTiltSetVoltage(
+  tiltSetVoltage(
     ((pid_wrist.calculate(angle)/ManipulatorConstants.wrist_maxVel))//Maybe times 12
-     + ff_wrist.calculate(enc_wrist.getPosition(), pid_wrist.getSetpoint().velocity)), () -> manipulatorTiltSetVoltage(0)));
+     + ff_wrist.calculate(enc_wrist.getPosition(), pid_wrist.getSetpoint().velocity)), () -> tiltSetVoltage(0)));
 }
-public void manipulatorTiltSetVoltage(double volts) {
+
+public void tiltSetVoltage(double volts) {
    m_wrist.setVoltage(volts);
 }
 
-public void manipulatorSpinSetVoltage(double volts) {
+public void spinSetVoltage(double volts) {
    m_shoot.setVoltage(volts);
 }
 

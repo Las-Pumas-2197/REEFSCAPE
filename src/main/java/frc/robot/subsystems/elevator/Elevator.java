@@ -12,7 +12,6 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -22,6 +21,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utils.Configs.ElevatorConfigs;
+import frc.robot.utils.Constants.ElevatorCalibration;
 import frc.robot.utils.Constants.ElevatorConstants;
 
 public class Elevator extends SubsystemBase {
@@ -37,7 +37,7 @@ public class Elevator extends SubsystemBase {
   //PID controller, trapezoidal profile for height control
   private final TrapezoidProfile.Constraints prof_height;
   private final ProfiledPIDController pid_height;
-  private final ElevatorFeedforward ff_height;
+  private final ElevatorFeedforward ff_height; //not used currently, not characterized
 
   //limit switch status vars
   private final DigitalInput sw_elevupper;
@@ -49,7 +49,6 @@ public class Elevator extends SubsystemBase {
   //slew limiter for open loop mode and bool to enable/disable
   private final SlewRateLimiter slew_elev;
   private static final double slew_ratelimit = 12; //units per second
-  private boolean var_slewenabled;
   
   //raw pos values from encoder manager
   private double var_elevrightheight;
@@ -63,7 +62,9 @@ public class Elevator extends SubsystemBase {
   //applied volts to elevator
   private double var_slewedvolts;
   private double var_elevvolts;
-  private double var_rawvolts;
+
+  //multiplier for drive speed based on elevator height
+  private double var_drivespeedmult;
 
   /** Creates a new Elevator. */
   public Elevator() {
@@ -100,56 +101,77 @@ public class Elevator extends SubsystemBase {
     elTimer = new Timer();
   }
 
-  public void elevatorEnable(double volts, boolean slew_enabled) {
+  /**
+   * Method used to operate elevator in open-loop. Also used by elevatorCL() to operate elevator in CL with the safety switches in place.
+   * @param volts Volts to apply to elevator.
+   * @param slew_enabled
+   */
+  public void elevatorOL(double volts, boolean slew_enabled) {
 
-      //check limit switch states, stop elevator and reset slew if either is triggered, otherwise pass volts through conditionals
-  if (var_elevswlower || var_elevswupper) {
-    slew_elev.reset(0);
-    if (var_elevswlower) {
-      var_elevvolts = Math.abs(volts) + volts / 2;
+    //check limit switch states, stop elevator and reset slew if either is triggered, otherwise pass volts through conditionals
+    if (var_elevswlower || var_elevswupper) {
+      slew_elev.reset(0);
+      if (var_elevswlower) {
+        var_elevvolts = Math.abs(volts) + volts / 2;
+      }
+      if (var_elevswupper) {
+        var_elevvolts = volts - Math.abs(volts) / 2;
+      }
+    } else {
+      var_elevvolts = volts;
     }
-    if (var_elevswupper) {
-      var_elevvolts = volts - Math.abs(volts) / 2;
-    }
-  } else {
-    var_elevvolts = volts;
-  }
 
-  //slew volts depending on passed variable
-  var_slewedvolts = slew_enabled ? slew_elev.calculate(var_elevvolts) : var_elevvolts;
+    //slew volts depending on passed variable
+    var_slewedvolts = slew_enabled ? slew_elev.calculate(var_elevvolts) : var_elevvolts;
 
-  //write volts to motors
-  m_elevright.setVoltage(var_slewedvolts);
-  m_elevleft.setVoltage(var_slewedvolts);
-  }
-
-  public void elevatorSafeties() {
-
+    //write volts to motors
+    m_elevright.setVoltage(var_slewedvolts);
+    m_elevleft.setVoltage(var_slewedvolts);
   }
 
   /**
-  public Command elevatorSetHeight(double height) {
-      return runOnce(() -> pid_height.setGoal(height))
-      .andThen(() -> elevatorSetVoltage(
-        pid_height.calculate(var_elevheightavg) / ElevatorConstants.elev_maxvel * 12 + 
-        ff_height.calculate(pid_height.getSetpoint().velocity), false));
+   * Command used to send a setpoint to the elevator and have it hold there.
+   * @param height Height desired.
+   */
+  public Command elevatorCL(double height) {
+    return runOnce(() -> pid_height.setGoal(height))
+          .andThen(run(() -> elevatorOL(pid_height.calculate(height) / ElevatorConstants.elev_maxvel * 12, false)));
   }
 
-  
+  /**Automatically runs a subroutine to retract the elevator slowly, then resets the encoders when the lower limit is reached. */
   public Command elevatorHome() {
-    return run(() -> elevatorSetVoltage(-6, true))
-           .until(() -> var_elevswlower)
-           .andThen(runOnce(() -> elevatorSetVoltage(0, false)))
-           .finallyDo(() -> resetEncoderPositions());
+    return runOnce(() -> elevatorOL(3, true))
+          .until(() -> var_elevswlower = true)
+          .andThen(runOnce(() -> elevatorOL(0, false)))
+          .andThen(runOnce(() -> resetEncoderPositions())); //AAAAAAAAAAND THEEEEEEEEEEN
   }
 
-  */
+  /**
+   * Method to call and operate elevator.
+   * @param CL_enable To enable closed loop control. True = CL enabled. False = OL
+   * @param height Height at which to set the elevator to in CL.
+   * @param OL_volts Volts to set the elevator to in OL.
+   */
+  public void runElevator(boolean CL_enable, double height, double OL_volts) {
+    if (CL_enable) {
+      elevatorCL(height);
+    } else {
+      elevatorOL(OL_volts, true);
+    }
+  }
 
+  /**
+   * Primitve for operating elevator forward and back manually. Only used in case failure has occured with elevator locks.
+   * @param volts Passed volts to motors.
+   */
   public void tiltSetVoltage(double volts) {
     m_tiltright.setVoltage(volts);
     m_tiltleft.setVoltage(volts);
   }
 
+  /**
+   * Subroutine to bump elevator forward and lock elevator.
+   */
   public Command lockElevator() {
     return runOnce(() -> elTimer.start()).andThen(run(() ->
       tiltSetVoltage(3)
@@ -179,10 +201,14 @@ public class Elevator extends SubsystemBase {
     };
   }
 
+  /**Returns the drive speed multipler that is calculated by elevator. */
+  public double getDriveSpeedMult() {
+    return var_drivespeedmult;
+  }
+
   /**Resets the encoders for the elevator to zero. Only call when the elevator is in home state (fully retracted).*/
-  public void resetEncoderPositions() {
-    enc_elevleft.encoderReset();
-    enc_elevright.encoderReset();
+  public Command resetEncoderPositions() {
+    return runOnce(() -> enc_elevleft.encoderReset()).andThen(runOnce(() -> enc_elevright.encoderReset()));
   }
 
   @Override
@@ -197,7 +223,7 @@ public class Elevator extends SubsystemBase {
   var_elevswlower = sw_elevlower.get() ? false : true;
   var_elevswupper = sw_elevupper.get() ? false : true;
 
-
-
+  //calculate the multipler for the drive speed based on the height of the elevator
+  var_drivespeedmult = var_elevheightavg - ElevatorCalibration.elev_maxheight + 0.2;
   }
 }
