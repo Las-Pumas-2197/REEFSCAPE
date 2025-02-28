@@ -18,6 +18,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utils.Configs.ElevatorConfigs;
@@ -51,10 +52,12 @@ public class Elevator extends SubsystemBase {
   private double var_elevrightheight;
   private double var_elevleftheight;
   private double var_elevheightavg; //averaged height of elevator encoders
+  private boolean var_elevswupper;
+  private boolean var_elevswlower;
 
   //applied volts to elevator
   private double var_elevvolts;
-
+  private Timer elTimer;
   /** Creates a new Elevator. */
   public Elevator() {
     
@@ -85,6 +88,9 @@ public class Elevator extends SubsystemBase {
 
     //slews for open loop control
     slew_elev = new SlewRateLimiter(slew_ratelimit);
+
+    //timer
+    elTimer = new Timer();
   }
 
   /**Operate the elevator in open-loop with safeties. Safeties can be disabled by passing a boolean.
@@ -97,13 +103,15 @@ public class Elevator extends SubsystemBase {
 
     //if either switch is triggered, check which one and transform volts, else run elevator with passed volts
     //disables slews and FFs to stop elevator immediately when limit switch is triggered
-    if (sw_elevlower.get() || sw_elevupper.get()) {
-      if (sw_elevlower.get()) {
+    if (var_elevswlower || var_elevswupper) {
+      if (var_elevswlower) {
         var_enableOL = false;
+        slew_elev.reset(0);
         var_elevvolts = MathUtil.clamp(Math.abs(volts) + volts, -12, 12);
       }
-      if (sw_elevupper.get()) {
+      if (var_elevswupper) {
         var_enableOL = false;
+        slew_elev.reset(0);
         var_elevvolts = MathUtil.clamp(volts - Math.abs(volts), -12, 12);
       }
     } else {
@@ -126,7 +134,7 @@ public class Elevator extends SubsystemBase {
   /**Runs elevator down until the lower limit switch is triggered, then zeros the encoders. Used to home the encoders if there is drift.*/
   public Command elevatorHome() {
     return run(() -> elevatorSetVoltage(-6, true))
-           .until(() -> sw_elevlower.get())
+           .until(() -> var_elevswlower)
            .andThen(runOnce(() -> elevatorSetVoltage(0, false)))
            .finallyDo(() -> resetEncoderPositions());
   }
@@ -135,14 +143,21 @@ public class Elevator extends SubsystemBase {
     m_tiltright.setVoltage(volts);
     m_tiltleft.setVoltage(volts);
   }
-
+  
+  public Command setElevator(){
+    return runOnce(() -> elTimer.start()).andThen(run(() ->
+      tiltSetVoltage(3)
+    )).until(() -> elTimer.get() > 0.5).andThen(runOnce(() -> 
+    tiltSetVoltage(0)
+    ));
+  };
   /**Returns an array containing the status of the limit switches for the elevator.
    * @return The array. Index 0 = upper, index 1 = lower.
    */
   public boolean[] getSwitchStatuses(){
     return new boolean[] {
-      sw_elevupper.get(),
-      sw_elevlower.get()
+      var_elevswupper,
+      var_elevswupper
     };
   }
 
@@ -169,7 +184,7 @@ public class Elevator extends SubsystemBase {
   //write volts to motors, if OL enabled, use FF and slews to control elevator better
   if (var_enableOL) {
     double volts;
-    volts = ff_height.calculate(slew_elev.calculate(var_elevvolts));
+    volts = slew_elev.calculate(var_elevvolts);
     m_elevright.setVoltage(volts);
     m_elevleft.setVoltage(volts);
   } else {
@@ -182,5 +197,9 @@ public class Elevator extends SubsystemBase {
   var_elevrightheight = enc_elevright.getPos();
   var_elevleftheight = enc_elevleft.getPos();
   var_elevheightavg = (var_elevrightheight + var_elevleftheight) / 2;
+
+  //invert limit switches
+  var_elevswlower = sw_elevlower.get() ? false : true;
+  var_elevswupper = sw_elevupper.get() ? false : true;
   }
 }

@@ -8,6 +8,7 @@ import static edu.wpi.first.wpilibj2.command.Commands.*;
 
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -58,6 +59,9 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the button bindings
     configureButtonBindings();
+
+    //camera server
+    CameraServer.startAutomaticCapture();
 
     // Configure default commands
     m_robotDrive.setDefaultCommand(
@@ -111,10 +115,14 @@ public class RobotContainer {
     m_operatorController.povLeft().whileTrue(runEnd(() -> m_Elevator.tiltSetVoltage(3), () -> m_Elevator.tiltSetVoltage(0)));
     m_operatorController.povRight().whileTrue(runEnd(() -> m_Elevator.tiltSetVoltage(-3), () -> m_Elevator.tiltSetVoltage(0)));
 
+    m_operatorController.y().whileTrue(run(() -> m_Manipulator.manipulatorTiltSetVoltage(3))).whileFalse(runOnce(() -> m_Manipulator.manipulatorTiltSetVoltage(0)));
+    m_operatorController.a().whileTrue(run(() -> m_Manipulator.manipulatorTiltSetVoltage(-3))).whileFalse(runOnce(() -> m_Manipulator.manipulatorTiltSetVoltage(0)));
+    m_operatorController.x().whileTrue(run(() -> m_Manipulator.manipulatorSpinSetVoltage(12))).whileFalse(runOnce(() -> m_Manipulator.manipulatorSpinSetVoltage(0)));
+    m_operatorController.b().whileTrue(run(() -> m_Manipulator.manipulatorSpinSetVoltage(-12))).whileFalse(runOnce(() -> m_Manipulator.manipulatorSpinSetVoltage(0)));
+
     //operate elevator up and down manually by using left bumper and pov up/down as well as homing
-    m_operatorController.povDown().and(m_operatorController.leftBumper()).whileTrue(run(() -> m_Elevator.elevatorSetVoltage(-3, true)));
-    m_operatorController.povUp().and(m_operatorController.leftBumper()).whileTrue(run(() -> m_Elevator.elevatorSetVoltage(3, true)));
-    m_operatorController.leftStick().and(m_operatorController.leftBumper().whileTrue(runOnce(() -> m_Elevator.elevatorHome())));
+    m_operatorController.povDown().and(m_operatorController.leftBumper()).whileTrue(run(() -> m_Elevator.elevatorSetVoltage(-4.5, true))).whileFalse(runOnce(() -> m_Elevator.elevatorSetVoltage(0, true)));
+    m_operatorController.povUp().and(m_operatorController.leftBumper()).whileTrue(run(() -> m_Elevator.elevatorSetVoltage(6, true))).whileFalse(runOnce(() -> m_Elevator.elevatorSetVoltage(0, true)));
   }
   
   //should work, formatted into in-line command above in bindings
@@ -130,7 +138,9 @@ public class RobotContainer {
   public double getJoystickHeading(){
     return MathUtil.angleModulus(-(Math.atan2(m_driverController.getRawAxis(5), -m_driverController.getRawAxis(4))) + 0.5 * Math.PI);
   }
-
+  public Command initializeElevator(){
+    return m_Elevator.setElevator();
+  }
   public Command exampleauto() {
     //return auto1;
     return null;
@@ -160,5 +170,9 @@ public class RobotContainer {
     SmartDashboard.putNumber("Elevator Encoder Right", ElevatorEncoders[0]);
     SmartDashboard.putNumber("Elevator Encoder Left", ElevatorEncoders[1]);
     SmartDashboard.putNumber("Elevator Encoder Avg", ElevatorEncoders[2]);
+
+    //elevator limit switches
+    SmartDashboard.putBoolean("lower", m_Elevator.getSwitchStatuses()[1]);
+    SmartDashboard.putBoolean("upper", m_Elevator.getSwitchStatuses()[0]);
   }
 }
