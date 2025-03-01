@@ -50,23 +50,36 @@ public class Manipulator extends SubsystemBase {
     ff_wrist = new ArmFeedforward(Constants.ManipulatorConstants.wrist_FFkS, Constants.ManipulatorConstants.wrist_FFkG, Constants.ManipulatorConstants.wrist_FFkV);
   }
 
-public Command setAngle(double angle){
-  return runOnce(() -> pid_wrist.setGoal(angle)).andThen(runEnd(() ->
-  tiltSetVoltage(
-    ((pid_wrist.calculate(angle)/ManipulatorConstants.wrist_maxVel))//Maybe times 12
-     + ff_wrist.calculate(enc_wrist.getPosition(), pid_wrist.getSetpoint().velocity)), () -> tiltSetVoltage(0)));
-}
+  /**Primitive for operating manipulator tilt.
+   * @param volts Voltage to apply to the motor.
+   */
+  public void tiltSetVoltage(double volts) {
+    m_wrist.setVoltage(volts);
+  }
 
-public void tiltSetVoltage(double volts) {
-   m_wrist.setVoltage(volts);
-}
+  /**Primitive for operating the manipulator ejector motor.
+   * @param volts Voltage to apply to the motor.
+   */
+  public void spinSetVoltage(double volts) {
+    m_shoot.setVoltage(volts);
+  }
 
-public void spinSetVoltage(double volts) {
-   m_shoot.setVoltage(volts);
-}
+  /**Operate manipulator in closed loop to hold an angle.
+   * @param angle The angle to hold at in rads.
+   */
+  public Command setAngle(double angle){
+    return runOnce(() -> pid_wrist.setGoal(angle))
+          .andThen(runEnd(
+            () -> tiltSetVoltage(
+              (((pid_wrist.calculate(angle) / ManipulatorConstants.wrist_maxVel)) * 12)), () -> tiltSetVoltage(0)));
+  }
+
+  /**Returns the current position of the manipulator in rads. */
+  public double getAngle() {
+    return enc_wrist.getPosition();
+  }
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
   }
 }

@@ -129,8 +129,7 @@ public class Elevator extends SubsystemBase {
     m_elevleft.setVoltage(var_slewedvolts);
   }
 
-  /**
-   * Command used to send a setpoint to the elevator and have it hold there.
+  /**Command used to send a setpoint to the elevator and have it hold there.
    * @param height Height desired.
    */
   public Command elevatorCL(double height) {
@@ -138,7 +137,7 @@ public class Elevator extends SubsystemBase {
           .andThen(run(() -> elevatorOL(pid_height.calculate(height) / ElevatorConstants.elev_maxvel * 12, false)));
   }
 
-  /**Automatically runs a subroutine to retract the elevator slowly, then resets the encoders when the lower limit is reached. */
+  /**Automatically runs a subroutine to retract the elevator at 1/4 speed, then stops and resets the encoders when the lower limit is reached. */
   public Command elevatorHome() {
     return runOnce(() -> elevatorOL(3, true))
           .until(() -> var_elevswlower = true)
@@ -146,8 +145,7 @@ public class Elevator extends SubsystemBase {
           .andThen(runOnce(() -> resetEncoderPositions())); //AAAAAAAAAAND THEEEEEEEEEEN
   }
 
-  /**
-   * Method to call and operate elevator.
+  /**Method to call and operate elevator.
    * @param CL_enable To enable closed loop control. True = CL enabled. False = OL
    * @param height Height at which to set the elevator to in CL.
    * @param OL_volts Volts to set the elevator to in OL.
@@ -160,8 +158,7 @@ public class Elevator extends SubsystemBase {
     }
   }
 
-  /**
-   * Primitve for operating elevator forward and back manually. Only used in case failure has occured with elevator locks.
+  /**Primitve for operating elevator forward and back manually. Only used in case failure has occured with elevator locks.
    * @param volts Passed volts to motors.
    */
   public void tiltSetVoltage(double volts) {
@@ -169,9 +166,7 @@ public class Elevator extends SubsystemBase {
     m_tiltleft.setVoltage(volts);
   }
 
-  /**
-   * Subroutine to bump elevator forward and lock elevator.
-   */
+  /**Subroutine to bump elevator forward and trigger locks.*/
   public Command lockElevator() {
     return runOnce(() -> elTimer.start()).andThen(run(() ->
       tiltSetVoltage(3)

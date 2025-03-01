@@ -102,7 +102,7 @@ public class RobotContainer {
               ),
             m_robotDrive));
 
-      //automatically run elevator at default
+    //automatically run elevator at default
     m_Elevator.setDefaultCommand(
       new RunCommand(
         () -> m_Elevator.runElevator(
@@ -115,6 +115,8 @@ public class RobotContainer {
   }
 
   private void configureButtonBindings() {
+
+
 
 
 
@@ -143,14 +145,26 @@ public class RobotContainer {
 
 
 
+    
+    //elevator state toggle between OL and CL, temporarily disabled for testing
+    //m_operatorController.leftBumper().onTrue(runOnce(() -> elevator_enableCL = elevator_enableCL ? false : true));
+
+
+
+
 
     //manipulator bindings
 
     //manipulator primitives
-    m_operatorController.y().whileTrue(run(() -> m_Manipulator.tiltSetVoltage(3))).whileFalse(runOnce(() -> m_Manipulator.tiltSetVoltage(0)));
-    m_operatorController.a().whileTrue(run(() -> m_Manipulator.tiltSetVoltage(-3))).whileFalse(runOnce(() -> m_Manipulator.tiltSetVoltage(0)));
-    m_operatorController.x().whileTrue(run(() -> m_Manipulator.spinSetVoltage(12))).whileFalse(runOnce(() -> m_Manipulator.spinSetVoltage(0)));
-    m_operatorController.b().whileTrue(run(() -> m_Manipulator.spinSetVoltage(-12))).whileFalse(runOnce(() -> m_Manipulator.spinSetVoltage(0)));
+    m_operatorController.y().and(() -> elevator_enableCL = false).whileTrue(run(() -> m_Manipulator.tiltSetVoltage(3))).whileFalse(runOnce(() -> m_Manipulator.tiltSetVoltage(0)));
+    m_operatorController.a().and(() -> elevator_enableCL = false).whileTrue(run(() -> m_Manipulator.tiltSetVoltage(-3))).whileFalse(runOnce(() -> m_Manipulator.tiltSetVoltage(0)));
+    m_operatorController.x().and(() -> elevator_enableCL = false).whileTrue(run(() -> m_Manipulator.spinSetVoltage(12))).whileFalse(runOnce(() -> m_Manipulator.spinSetVoltage(0)));
+    m_operatorController.b().and(() -> elevator_enableCL = false).whileTrue(run(() -> m_Manipulator.spinSetVoltage(-12))).whileFalse(runOnce(() -> m_Manipulator.spinSetVoltage(0)));
+
+    //manipulator angle closed loop
+    m_operatorController.a().and(() -> elevator_enableCL).whileTrue(run(() -> m_Manipulator.setAngle(-0.5 * Math.PI)));
+    m_operatorController.a().and(() -> elevator_enableCL).whileTrue(run(() -> m_Manipulator.setAngle(0.5 * Math.PI)));
+    
 
 
 
@@ -159,9 +173,6 @@ public class RobotContainer {
     //tilt forward and back if locks fail
     m_operatorController.povLeft().whileTrue(runEnd(() -> m_Elevator.tiltSetVoltage(3), () -> m_Elevator.tiltSetVoltage(0)));
     m_operatorController.povRight().whileTrue(runEnd(() -> m_Elevator.tiltSetVoltage(-3), () -> m_Elevator.tiltSetVoltage(0)));
-
-    //elevator state toggle between OL and CL, temporarily disabled for testing
-    //m_operatorController.leftBumper().onTrue(runOnce(() -> elevator_enableCL = elevator_enableCL ? false : true));
 
     //elevator up and down in OL
     m_operatorController.povUp().and(() -> elevator_enableCL = false).whileTrue(run(() -> elevator_OLvolts = 6)).whileFalse(runOnce(() -> elevator_OLvolts = 0));
@@ -177,6 +188,8 @@ public class RobotContainer {
 
     //cancels default command and calls homing routine should automatically call default command again when finished
     m_operatorController.leftStick().onTrue(run(() -> m_Elevator.elevatorHome()));
+
+
 
 
 

@@ -131,8 +131,8 @@ public final class Constants {
     public static final double wrist_velfactor = 0.001047; //rads/s
     public static final double wrist_maxrational = 0;
     //PIDF settings, needs characterized
-    public static final double wrist_maxVel = 2.97192;
-    public static final double wrist_maxAccel = 5.94384; 
+    public static final double wrist_maxVel = 5.94389;
+    public static final double wrist_maxAccel = 0.5; 
     public static final double wrist_FFkS = 0;
     public static final double wrist_FFkV = 0.49532;
     public static final double wrist_FFkG = 0;
