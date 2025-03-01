@@ -103,6 +103,8 @@ public class RobotContainer {
             m_robotDrive));
 
     //automatically run elevator at default
+    
+    
     m_Elevator.setDefaultCommand(
       new RunCommand(
         () -> m_Elevator.runElevator(
@@ -156,18 +158,22 @@ public class RobotContainer {
     //manipulator bindings
 
     //manipulator primitives
+
+    /**
     m_operatorController.y().and(() -> elevator_enableCL = false).whileTrue(run(() -> m_Manipulator.tiltSetVoltage(3))).whileFalse(runOnce(() -> m_Manipulator.tiltSetVoltage(0)));
     m_operatorController.a().and(() -> elevator_enableCL = false).whileTrue(run(() -> m_Manipulator.tiltSetVoltage(-3))).whileFalse(runOnce(() -> m_Manipulator.tiltSetVoltage(0)));
     m_operatorController.x().and(() -> elevator_enableCL = false).whileTrue(run(() -> m_Manipulator.spinSetVoltage(12))).whileFalse(runOnce(() -> m_Manipulator.spinSetVoltage(0)));
     m_operatorController.b().and(() -> elevator_enableCL = false).whileTrue(run(() -> m_Manipulator.spinSetVoltage(-12))).whileFalse(runOnce(() -> m_Manipulator.spinSetVoltage(0)));
 
+    */
+    
     //manipulator angle closed loop
     m_operatorController.a().and(() -> elevator_enableCL).whileTrue(run(() -> m_Manipulator.setAngle(-0.5 * Math.PI)));
     m_operatorController.a().and(() -> elevator_enableCL).whileTrue(run(() -> m_Manipulator.setAngle(0.5 * Math.PI)));
     
 
 
-
+    
     //elevator bindings
 
     //tilt forward and back if locks fail
@@ -175,16 +181,16 @@ public class RobotContainer {
     m_operatorController.povRight().whileTrue(runEnd(() -> m_Elevator.tiltSetVoltage(-3), () -> m_Elevator.tiltSetVoltage(0)));
 
     //elevator up and down in OL
-    m_operatorController.povUp().and(() -> elevator_enableCL = false).whileTrue(run(() -> elevator_OLvolts = 6)).whileFalse(runOnce(() -> elevator_OLvolts = 0));
-    m_operatorController.povDown().and(() -> elevator_enableCL = false).whileTrue(run(() -> elevator_OLvolts = -6)).whileFalse(runOnce(() -> elevator_OLvolts = 0));
+    m_operatorController.povUp().whileTrue(run(() -> elevator_OLvolts = 6)).whileFalse(runOnce(() -> elevator_OLvolts = 0));
+    m_operatorController.povDown().whileTrue(run(() -> elevator_OLvolts = -6)).whileFalse(runOnce(() -> elevator_OLvolts = 0));
 
     //increment height setpoint up and down when in CL
-    m_operatorController.povUp().and(() -> elevator_enableCL).whileTrue(run(() -> elevator_CLheight = elevator_CLheight + elevator_CLheightinc));
-    m_operatorController.povDown().and(() -> elevator_enableCL).whileTrue(run(() -> elevator_CLheight = elevator_CLheight - elevator_CLheightinc));
+    //m_operatorController.povUp().whileTrue(run(() -> elevator_CLheight = elevator_CLheight + elevator_CLheightinc));
+    //m_operatorController.povDown().whileTrue(run(() -> elevator_CLheight = elevator_CLheight - elevator_CLheightinc));
 
     //check if button is presed and pose is within limits, then iterate up or down
-    m_operatorController.start().and(() -> elevator_pose < 5).onTrue(runOnce(() -> elevator_pose = elevator_pose + 1));
-    m_operatorController.back().and(() -> elevator_pose > 0).onTrue(runOnce(() -> elevator_pose = elevator_pose - 1));
+    m_operatorController.start().and(() -> elevator_pose < 5).whileTrue(runOnce(() -> elevator_pose = elevator_pose + 1));
+    m_operatorController.back().and(() -> elevator_pose > 0).whileTrue(runOnce(() -> elevator_pose = elevator_pose - 1));
 
     //cancels default command and calls homing routine should automatically call default command again when finished
     m_operatorController.leftStick().onTrue(run(() -> m_Elevator.elevatorHome()));
@@ -249,7 +255,11 @@ public class RobotContainer {
     SmartDashboard.putBoolean("elevator CL state", elevator_enableCL);
     SmartDashboard.putNumber("elevator CL height", elevator_CLheight);
     SmartDashboard.putNumber("elevator pose", elevator_pose);
+    SmartDashboard.putNumber("elevator OL volts", elevator_OLvolts);
     SmartDashboard.putBoolean("elevator homing command state", m_Elevator.elevatorHome().isFinished());
     SmartDashboard.putBoolean("elevator run command state", m_Elevator.getDefaultCommand().isScheduled());
+
+    SmartDashboard.putNumber("elevator volts", m_Elevator.getVolts()[0]);
+    SmartDashboard.putNumber("slewed elevator volts", m_Elevator.getVolts()[1]);
   }
 }

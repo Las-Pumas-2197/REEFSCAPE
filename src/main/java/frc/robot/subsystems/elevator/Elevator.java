@@ -110,19 +110,18 @@ public class Elevator extends SubsystemBase {
 
     //check limit switch states, stop elevator and reset slew if either is triggered, otherwise pass volts through conditionals
     if (var_elevswlower || var_elevswupper) {
-      slew_elev.reset(0);
       if (var_elevswlower) {
-        var_elevvolts = Math.abs(volts) + volts / 2;
+        var_elevvolts = (Math.abs(volts) + volts) / 2;
       }
       if (var_elevswupper) {
-        var_elevvolts = volts - Math.abs(volts) / 2;
+        var_elevvolts = (volts - Math.abs(volts)) / 2;
       }
     } else {
       var_elevvolts = volts;
     }
 
     //slew volts depending on passed variable
-    var_slewedvolts = slew_enabled ? slew_elev.calculate(var_elevvolts) : var_elevvolts;
+    var_slewedvolts = slew_elev.calculate(var_elevvolts);
 
     //write volts to motors
     m_elevright.setVoltage(var_slewedvolts);
@@ -193,6 +192,13 @@ public class Elevator extends SubsystemBase {
       var_elevrightheight,
       var_elevleftheight,
       var_elevheightavg
+    };
+  }
+
+  public double[] getVolts() {
+    return new double[] {
+      var_elevvolts,
+      var_slewedvolts,
     };
   }
 
