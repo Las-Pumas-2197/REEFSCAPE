@@ -45,7 +45,7 @@ public class Manipulator extends SubsystemBase {
     enc_wrist = m_wrist.getEncoder();
 
     //pid and FFs
-    prof_wrist = new TrapezoidProfile.Constraints(Constants.ManipulatorConstants.wrist_maxVel, Constants.ManipulatorConstants.wrist_maxAccel);
+    prof_wrist = new TrapezoidProfile.Constraints(Constants.ManipulatorConstants.wrist_maxvel, Constants.ManipulatorConstants.wrist_maxaccel);
     pid_wrist = new ProfiledPIDController(Constants.ManipulatorConstants.wrist_PIDkP, 0, Constants.ManipulatorConstants.wrist_PIDkD, prof_wrist);
     ff_wrist = new ArmFeedforward(Constants.ManipulatorConstants.wrist_FFkS, Constants.ManipulatorConstants.wrist_FFkG, Constants.ManipulatorConstants.wrist_FFkV);
   }
@@ -71,7 +71,7 @@ public class Manipulator extends SubsystemBase {
     return runOnce(() -> pid_wrist.setGoal(angle))
           .andThen(runEnd(
             () -> tiltSetVoltage(
-              (((pid_wrist.calculate(angle) / ManipulatorConstants.wrist_maxVel)) * 12)), () -> tiltSetVoltage(0)));
+              (((pid_wrist.calculate(angle) / ManipulatorConstants.wrist_maxvel)) * 12)), () -> tiltSetVoltage(0)));
   }
 
   /**Returns the current position of the manipulator in rads. */

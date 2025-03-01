@@ -109,18 +109,18 @@ public final class Constants {
     //controller settings
     public static final int elev_maxcurrent = 40;
     public static final int tilt_maxcurrent = 40;
-    public static final double elev_posfactor = 0.05632; //meters
+    public static final double elev_posfactor = 0.16896; //meters
     public static final double elev_velfactor = elev_posfactor / 60; //meters per second
-    public static final double elev_enc_maxrational = 0.01184; //meters per 20ms
     //PIDF settings, needs characterized
-    public static final double elev_FFkS = 0; //needs measured
-    public static final double elev_FFkV = 0.04933;
-    public static final double elev_FFkG = 0; //needs measured
-    public static final double elev_FFkA = 0; //not used currently, may not be needed
-    public static final double elev_PIDkP = .1;
-    public static final double elev_PIDkD = 0;
     public static final double elev_maxvel = 0.59207; //meters per second
     public static final double elev_maxacl = 0.25; //meters per second ^ 2
+    public static final double elev_FFkS = 0;
+    public static final double elev_FFkV = 0;
+    public static final double elev_FFkG = 0;
+    public static final double elev_FFkA = 0;
+    public static final double elev_PIDkP = 0.1;
+    public static final double elev_PIDkD = 0;
+  
   }
 
   public static final class ManipulatorConstants {
@@ -128,13 +128,12 @@ public final class Constants {
     public static final int wrist_maxcurrent = 40;
     public static final int spike_maxcurrent = 20;
     public static final double wrist_posfactor =  0.062831; //rads
-    public static final double wrist_velfactor = 0.001047; //rads/s
-    public static final double wrist_maxrational = 0;
+    public static final double wrist_velfactor = wrist_posfactor / 60; //rads/s
     //PIDF settings, needs characterized
-    public static final double wrist_maxVel = 5.94389;
-    public static final double wrist_maxAccel = 0.5; 
+    public static final double wrist_maxvel = 5.94389;
+    public static final double wrist_maxaccel = 0.5; //smol
     public static final double wrist_FFkS = 0;
-    public static final double wrist_FFkV = 0.49532;
+    public static final double wrist_FFkV = 0;
     public static final double wrist_FFkG = 0;
     public static final double wrist_FFkA = 0;
     public static final double wrist_PIDkP = 0.1;
@@ -144,12 +143,12 @@ public final class Constants {
   //these must be measured and adjusted accordingly
   public static final class ElevatorCalibration {
     //reef height calibration data
-    public static final double elev_L1height = 0;
-    public static final double elev_L2height = 0;
-    public static final double elev_L3height = 0;
-    public static final double elev_L4height = 0;
-    public static final double elev_loadheight = 0;
-    public static final double elev_maxheight = 0;
+    public static final double elev_L1height = 0.2;
+    public static final double elev_L2height = 0.3;
+    public static final double elev_L3height = 0.4;
+    public static final double elev_L4height = 0.5;
+    public static final double elev_loadheight = 0.1;
+    public static final double elev_maxheight = 1;
     //reef angle calibration data
     public static final double wrist_L1angle = 0;
     public static final double wrist_L2angle = 0;

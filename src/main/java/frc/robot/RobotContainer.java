@@ -22,7 +22,6 @@ import frc.robot.utils.Constants.OIConstants;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -118,10 +117,6 @@ public class RobotContainer {
 
   private void configureButtonBindings() {
 
-
-
-
-
     //drive system bindings
 
     //set modules to be in X position to block
@@ -144,12 +139,13 @@ public class RobotContainer {
       ((MathUtil.applyDeadband(m_driverController.getLeftTriggerAxis(), OIConstants.kDriveDeadband) + 
       -MathUtil.applyDeadband(m_driverController.getRightTriggerAxis(), OIConstants.kDriveDeadband))*0.04)));
 
+    
 
 
 
     
     //elevator state toggle between OL and CL, temporarily disabled for testing
-    //m_operatorController.leftBumper().onTrue(runOnce(() -> elevator_enableCL = elevator_enableCL ? false : true));
+    m_operatorController.leftBumper().onTrue(runOnce(() -> elevator_enableCL = elevator_enableCL ? false : true));
 
 
 
@@ -159,17 +155,14 @@ public class RobotContainer {
 
     //manipulator primitives
 
-    /**
-    m_operatorController.y().and(() -> elevator_enableCL = false).whileTrue(run(() -> m_Manipulator.tiltSetVoltage(3))).whileFalse(runOnce(() -> m_Manipulator.tiltSetVoltage(0)));
-    m_operatorController.a().and(() -> elevator_enableCL = false).whileTrue(run(() -> m_Manipulator.tiltSetVoltage(-3))).whileFalse(runOnce(() -> m_Manipulator.tiltSetVoltage(0)));
-    m_operatorController.x().and(() -> elevator_enableCL = false).whileTrue(run(() -> m_Manipulator.spinSetVoltage(12))).whileFalse(runOnce(() -> m_Manipulator.spinSetVoltage(0)));
-    m_operatorController.b().and(() -> elevator_enableCL = false).whileTrue(run(() -> m_Manipulator.spinSetVoltage(-12))).whileFalse(runOnce(() -> m_Manipulator.spinSetVoltage(0)));
-
-    */
+    m_operatorController.y().and(() -> elevator_enableCL = false).whileTrue(runEnd(() -> m_Manipulator.tiltSetVoltage(3), () -> m_Manipulator.tiltSetVoltage(0)));
+    m_operatorController.a().and(() -> elevator_enableCL = false).whileTrue(runEnd(() -> m_Manipulator.tiltSetVoltage(-3), () -> m_Manipulator.tiltSetVoltage(0)));
+    m_operatorController.x().and(() -> elevator_enableCL = false).whileTrue(runEnd(() -> m_Manipulator.spinSetVoltage(12), () -> m_Manipulator.spinSetVoltage(0)));
+    m_operatorController.b().and(() -> elevator_enableCL = false).whileTrue(runEnd(() -> m_Manipulator.spinSetVoltage(-12), () -> m_Manipulator.spinSetVoltage(0)));
     
     //manipulator angle closed loop
-    m_operatorController.a().and(() -> elevator_enableCL).whileTrue(run(() -> m_Manipulator.setAngle(-0.5 * Math.PI)));
-    m_operatorController.a().and(() -> elevator_enableCL).whileTrue(run(() -> m_Manipulator.setAngle(0.5 * Math.PI)));
+    m_operatorController.y().and(() -> elevator_enableCL).onTrue(run(() -> m_Manipulator.setAngle(-0.25 * Math.PI)));
+    m_operatorController.x().and(() -> elevator_enableCL).onTrue(run(() -> m_Manipulator.setAngle(-0.50 * Math.PI)));
     
 
 
@@ -181,8 +174,8 @@ public class RobotContainer {
     m_operatorController.povRight().whileTrue(runEnd(() -> m_Elevator.tiltSetVoltage(-3), () -> m_Elevator.tiltSetVoltage(0)));
 
     //elevator up and down in OL
-    m_operatorController.povUp().whileTrue(run(() -> elevator_OLvolts = 6)).whileFalse(runOnce(() -> elevator_OLvolts = 0));
-    m_operatorController.povDown().whileTrue(run(() -> elevator_OLvolts = -6)).whileFalse(runOnce(() -> elevator_OLvolts = 0));
+    m_operatorController.povUp().and(() -> elevator_enableCL = false).whileTrue(runEnd(() -> elevator_OLvolts = 6, () -> elevator_OLvolts = 0));
+    m_operatorController.povDown().and(() -> elevator_enableCL = false).whileTrue(runEnd(() -> elevator_OLvolts = -6, () -> elevator_OLvolts = 0));
 
     //increment height setpoint up and down when in CL
     //m_operatorController.povUp().whileTrue(run(() -> elevator_CLheight = elevator_CLheight + elevator_CLheightinc));
@@ -259,6 +252,7 @@ public class RobotContainer {
     SmartDashboard.putBoolean("elevator homing command state", m_Elevator.elevatorHome().isFinished());
     SmartDashboard.putBoolean("elevator run command state", m_Elevator.getDefaultCommand().isScheduled());
 
+    //internal elevator stuff
     SmartDashboard.putNumber("elevator volts", m_Elevator.getVolts()[0]);
     SmartDashboard.putNumber("slewed elevator volts", m_Elevator.getVolts()[1]);
   }
