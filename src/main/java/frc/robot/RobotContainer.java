@@ -18,10 +18,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.drive.DriveSubsystem;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.Manipulator;
+import frc.robot.utils.Constants.ElevatorCalibration;
 import frc.robot.utils.Constants.OIConstants;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -56,6 +58,11 @@ public class RobotContainer {
   private double elevator_CLheight;
   private double elevator_OLvolts;
   private static final double elevator_CLheightinc = 0.001; //amount to increment per scheduler cycle. multiply by 50 to get meters per second
+
+  //used in operation of manipulator
+  private double manipulator_angleCL;
+  private double manipulator_OLvolts;
+  private double manipulator_spinvolts;
 
   //value to store which pose is desired for the elevator
   //0 = homed and retracted
@@ -101,9 +108,7 @@ public class RobotContainer {
               ),
             m_robotDrive));
 
-    //automatically run elevator at default
-    
-    
+    //automatically run elevator
     m_Elevator.setDefaultCommand(
       new RunCommand(
         () -> m_Elevator.runElevator(
@@ -112,6 +117,17 @@ public class RobotContainer {
           elevator_OLvolts
         ),
       m_Elevator));
+
+    //automatically run manipulator
+    m_Manipulator.setDefaultCommand(
+      new RunCommand(
+        () -> m_Manipulator.runManipulator(
+          elevator_enableCL,
+          manipulator_angleCL,
+          manipulator_OLvolts,
+          manipulator_spinvolts
+        ),
+      m_Manipulator));
     
   }
 
@@ -145,7 +161,7 @@ public class RobotContainer {
 
     
     //elevator state toggle between OL and CL, temporarily disabled for testing
-    m_operatorController.leftBumper().onTrue(runOnce(() -> elevator_enableCL = elevator_enableCL ? false : true));
+    //m_operatorController.leftBumper().onTrue(runOnce(() -> elevator_enableCL = elevator_enableCL ? false : true));
 
 
 
@@ -155,23 +171,28 @@ public class RobotContainer {
 
     //manipulator primitives
 
-    m_operatorController.y().and(() -> elevator_enableCL = false).whileTrue(runEnd(() -> m_Manipulator.tiltSetVoltage(3), () -> m_Manipulator.tiltSetVoltage(0)));
-    m_operatorController.a().and(() -> elevator_enableCL = false).whileTrue(runEnd(() -> m_Manipulator.tiltSetVoltage(-3), () -> m_Manipulator.tiltSetVoltage(0)));
-    m_operatorController.x().and(() -> elevator_enableCL = false).whileTrue(runEnd(() -> m_Manipulator.spinSetVoltage(12), () -> m_Manipulator.spinSetVoltage(0)));
-    m_operatorController.b().and(() -> elevator_enableCL = false).whileTrue(runEnd(() -> m_Manipulator.spinSetVoltage(-12), () -> m_Manipulator.spinSetVoltage(0)));
+    m_operatorController.y().and(() -> elevator_enableCL = false).whileTrue(runEnd(() -> manipulator_OLvolts = 3, () -> manipulator_OLvolts = 0));
+    m_operatorController.a().and(() -> elevator_enableCL = false).whileTrue(runEnd(() -> manipulator_OLvolts = -3, () -> manipulator_spinvolts = 0));
+    m_operatorController.x().and(() -> elevator_enableCL = false).whileTrue(runEnd(() -> manipulator_spinvolts = 12, () -> manipulator_spinvolts= 0));
+    m_operatorController.b().and(() -> elevator_enableCL = false).whileTrue(runEnd(() -> manipulator_spinvolts = -12, () -> manipulator_spinvolts = 0));
     
     //manipulator angle closed loop
-    m_operatorController.y().and(() -> elevator_enableCL).onTrue(run(() -> m_Manipulator.setAngle(-0.25 * Math.PI)));
-    m_operatorController.x().and(() -> elevator_enableCL).onTrue(run(() -> m_Manipulator.setAngle(-0.50 * Math.PI)));
+    //m_operatorController.y().and(() -> elevator_enableCL).onTrue(runOnce(() -> manipulator_angleCL = -0.25 * Math.PI));
+    //m_operatorController.x().and(() -> elevator_enableCL).onTrue(runOnce(() -> manipulator_angleCL = -0.50 * Math.PI));
     
 
 
-    
-    //elevator bindings
+
+  
 
     //tilt forward and back if locks fail
     m_operatorController.povLeft().whileTrue(runEnd(() -> m_Elevator.tiltSetVoltage(3), () -> m_Elevator.tiltSetVoltage(0)));
     m_operatorController.povRight().whileTrue(runEnd(() -> m_Elevator.tiltSetVoltage(-3), () -> m_Elevator.tiltSetVoltage(0)));
+
+
+
+
+
 
     //elevator up and down in OL
     m_operatorController.povUp().and(() -> elevator_enableCL = false).whileTrue(runEnd(() -> elevator_OLvolts = 6, () -> elevator_OLvolts = 0));
@@ -181,29 +202,27 @@ public class RobotContainer {
     //m_operatorController.povUp().whileTrue(run(() -> elevator_CLheight = elevator_CLheight + elevator_CLheightinc));
     //m_operatorController.povDown().whileTrue(run(() -> elevator_CLheight = elevator_CLheight - elevator_CLheightinc));
 
+    //cancels default command and calls homing routine should automatically call default command again when finished
+    //m_operatorController.leftStick().onTrue(run(() -> m_Elevator.elevatorHome()));
+
+
+
+
+
+
+
+    //triggers for actions when elevator pose is changed
+
     //check if button is presed and pose is within limits, then iterate up or down
     m_operatorController.start().and(() -> elevator_pose < 5).whileTrue(runOnce(() -> elevator_pose = elevator_pose + 1));
     m_operatorController.back().and(() -> elevator_pose > 0).whileTrue(runOnce(() -> elevator_pose = elevator_pose - 1));
 
-    //cancels default command and calls homing routine should automatically call default command again when finished
-    m_operatorController.leftStick().onTrue(run(() -> m_Elevator.elevatorHome()));
-
-
-
-
-
-    //elevator pose triggers, need built
-
-    //triggers for actions when elevator pose is changed
-
-    /**
-    new Trigger(() -> elevator_pose == 0).onTrue(null); //retracted
-    new Trigger(() -> elevator_pose == 1).onTrue(null); //loading
-    new Trigger(() -> elevator_pose == 2).onTrue(null); //L1
-    new Trigger(() -> elevator_pose == 3).onTrue(null); //L2
-    new Trigger(() -> elevator_pose == 4).onTrue(null); //L3
-    new Trigger(() -> elevator_pose == 5).onTrue(null); //L4
-    */
+    //new Trigger(() -> elevator_pose == 0).onTrue(null); //retracted
+    new Trigger(() -> elevator_pose == 1).onTrue(runOnce(() -> elevator_CLheight = ElevatorCalibration.elev_loadheight)); //loading
+    new Trigger(() -> elevator_pose == 2).onTrue(runOnce(() -> elevator_CLheight = ElevatorCalibration.elev_L1height)); //L1
+    new Trigger(() -> elevator_pose == 3).onTrue(runOnce(() -> elevator_CLheight = ElevatorCalibration.elev_L2height)); //L2
+    new Trigger(() -> elevator_pose == 4).onTrue(runOnce(() -> elevator_CLheight = ElevatorCalibration.elev_L3height)); //L3
+    new Trigger(() -> elevator_pose == 5).onTrue(runOnce(() -> elevator_CLheight = ElevatorCalibration.elev_L4height)); //L4
   }
 
   public Command initializeElevator(){

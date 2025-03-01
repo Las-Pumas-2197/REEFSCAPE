@@ -111,6 +111,7 @@ public final class Constants {
     public static final int tilt_maxcurrent = 40;
     public static final double elev_posfactor = 0.16896; //meters
     public static final double elev_velfactor = elev_posfactor / 60; //meters per second
+    public static final double elev_enc_maxrational = 0.01184; //meters per 20ms
     //PIDF settings, needs characterized
     public static final double elev_maxvel = 0.59207; //meters per second
     public static final double elev_maxacl = 0.25; //meters per second ^ 2
@@ -129,6 +130,7 @@ public final class Constants {
     public static final int spike_maxcurrent = 20;
     public static final double wrist_posfactor =  0.062831; //rads
     public static final double wrist_velfactor = wrist_posfactor / 60; //rads/s
+    public static final double wrist_maxrational = 0;
     //PIDF settings, needs characterized
     public static final double wrist_maxvel = 5.94389;
     public static final double wrist_maxaccel = 0.5; //smol

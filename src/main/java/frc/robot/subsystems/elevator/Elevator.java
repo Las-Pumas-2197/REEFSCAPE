@@ -12,7 +12,6 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
-import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -37,7 +36,6 @@ public class Elevator extends SubsystemBase {
   //PID controller, trapezoidal profile for height control
   private final TrapezoidProfile.Constraints prof_height;
   private final ProfiledPIDController pid_height;
-  private final ElevatorFeedforward ff_height; //not used currently, not characterized
 
   //limit switch status vars
   private final DigitalInput sw_elevupper;
@@ -88,7 +86,6 @@ public class Elevator extends SubsystemBase {
     //pid controller
     prof_height = new TrapezoidProfile.Constraints(ElevatorConstants.elev_maxvel, ElevatorConstants.elev_maxacl);
     pid_height = new ProfiledPIDController(ElevatorConstants.elev_PIDkP, 0, ElevatorConstants.elev_PIDkD, prof_height);
-    ff_height = new ElevatorFeedforward(ElevatorConstants.elev_FFkS, ElevatorConstants.elev_FFkG, ElevatorConstants.elev_FFkV); //kA ignored due to high power
     
     //saftey switches
     sw_elevupper = new DigitalInput(0);
@@ -101,39 +98,33 @@ public class Elevator extends SubsystemBase {
     elTimer = new Timer();
   }
 
-  /**
-   * Method used to operate elevator in open-loop. Also used by elevatorCL() to operate elevator in CL with the safety switches in place.
+  /**Method used to operate elevator in open-loop. Also used by elevatorCL() to operate elevator in CL with the safety switches in place.
    * @param volts Volts to apply to elevator.
    * @param slew_enabled
    */
   public void elevatorOL(double volts, boolean slew_enabled) {
 
+      //apply slew to volts when enabled
+      var_slewedvolts = slew_enabled ? slew_elev.calculate(volts) : volts;
+
     //check limit switch states, stop elevator and reset slew if either is triggered, otherwise pass volts through conditionals
     if (var_elevswlower || var_elevswupper) {
-
-      //check if slew is not zero, zero if needed
-      if (slew_elev.lastValue() != 0) {
-        slew_elev.reset(0);
-      }
       
       //limit switch transformations
       if (var_elevswlower) {
-        var_elevvolts = (Math.abs(volts) + volts) / 2;
+        var_elevvolts = (Math.abs(var_slewedvolts) + var_slewedvolts) / 2;
       }
       if (var_elevswupper) {
-        var_elevvolts = (volts - Math.abs(volts)) / 2;
+        var_elevvolts = (var_slewedvolts - Math.abs(var_slewedvolts)) / 2;
       }
 
     } else {
-      var_elevvolts = slew_enabled ? slew_elev.calculate(var_elevvolts) : var_elevvolts;
+      var_elevvolts = var_slewedvolts;
     }
 
-    //slew volts depending on passed variable
-    var_slewedvolts = slew_enabled ? slew_elev.calculate(var_elevvolts) : var_elevvolts;
-
     //write volts to motors
-    m_elevright.setVoltage(var_slewedvolts);
-    m_elevleft.setVoltage(var_slewedvolts);
+    m_elevright.setVoltage(var_elevvolts);
+    m_elevleft.setVoltage(var_elevvolts);
   }
 
   /**Command used to send a setpoint to the elevator and have it hold there.

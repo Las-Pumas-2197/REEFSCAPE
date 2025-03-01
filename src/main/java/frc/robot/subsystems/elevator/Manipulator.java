@@ -8,7 +8,6 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.PersistMode;
 
-import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -30,7 +29,6 @@ public class Manipulator extends SubsystemBase {
   //feed forward and PID for wrist
   private final TrapezoidProfile.Constraints prof_wrist;
   private final ProfiledPIDController pid_wrist;
-  private final ArmFeedforward ff_wrist;
 
   /** Creates a new manipulator. */
   public Manipulator() {
@@ -47,7 +45,6 @@ public class Manipulator extends SubsystemBase {
     //pid and FFs
     prof_wrist = new TrapezoidProfile.Constraints(Constants.ManipulatorConstants.wrist_maxvel, Constants.ManipulatorConstants.wrist_maxaccel);
     pid_wrist = new ProfiledPIDController(Constants.ManipulatorConstants.wrist_PIDkP, 0, Constants.ManipulatorConstants.wrist_PIDkD, prof_wrist);
-    ff_wrist = new ArmFeedforward(Constants.ManipulatorConstants.wrist_FFkS, Constants.ManipulatorConstants.wrist_FFkG, Constants.ManipulatorConstants.wrist_FFkV);
   }
 
   /**Primitive for operating manipulator tilt.
@@ -72,6 +69,14 @@ public class Manipulator extends SubsystemBase {
           .andThen(runEnd(
             () -> tiltSetVoltage(
               (((pid_wrist.calculate(angle) / ManipulatorConstants.wrist_maxvel)) * 12)), () -> tiltSetVoltage(0)));
+  }
+
+  public void runManipulator(boolean CL_enabled, double angle, double OL_volts, double spin_volts) {
+    if (CL_enabled) {
+      setAngle(angle);
+    } else {
+      tiltSetVoltage(OL_volts);
+    }
   }
 
   /**Returns the current position of the manipulator in rads. */
