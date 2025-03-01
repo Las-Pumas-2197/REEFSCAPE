@@ -196,12 +196,15 @@ public class RobotContainer {
     //elevator pose triggers, need built
 
     //triggers for actions when elevator pose is changed
+
+    /**
     new Trigger(() -> elevator_pose == 0).onTrue(null); //retracted
     new Trigger(() -> elevator_pose == 1).onTrue(null); //loading
     new Trigger(() -> elevator_pose == 2).onTrue(null); //L1
     new Trigger(() -> elevator_pose == 3).onTrue(null); //L2
     new Trigger(() -> elevator_pose == 4).onTrue(null); //L3
     new Trigger(() -> elevator_pose == 5).onTrue(null); //L4
+    */
   }
 
   public Command initializeElevator(){
