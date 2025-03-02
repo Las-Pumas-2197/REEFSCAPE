@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.elevator;
 
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 
@@ -30,8 +31,8 @@ public class Elevator extends SubsystemBase {
   private final SparkMax m_tiltleft;  
 
   //encoder managers, makes encoder position values persistent without use of duty cycle encoders
-  private final EncoderManagerMax enc_elevright;
-  private final EncoderManagerMax enc_elevleft;
+  private final RelativeEncoder enc_elevright;
+  private final RelativeEncoder enc_elevleft;
 
   //PID controller, trapezoidal profile for height control
   private final TrapezoidProfile.Constraints prof_height;
@@ -80,8 +81,8 @@ public class Elevator extends SubsystemBase {
     m_tiltleft.configure(ElevatorConfigs.tiltConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     //encoder managers for height measurement
-    enc_elevright = new EncoderManagerMax(m_elevright);
-    enc_elevleft = new EncoderManagerMax(m_elevleft);
+    enc_elevright = m_elevleft.getEncoder();
+    enc_elevleft = m_elevleft.getEncoder();
 
     //pid controller
     prof_height = new TrapezoidProfile.Constraints(ElevatorConstants.elev_maxvel, ElevatorConstants.elev_maxacl);
@@ -137,10 +138,10 @@ public class Elevator extends SubsystemBase {
 
   /**Automatically runs a subroutine to retract the elevator at 1/4 speed, then stops and resets the encoders when the lower limit is reached. */
   public Command elevatorHome() {
-    return runOnce(() -> elevatorOL(3, true))
-          .until(() -> var_elevswlower = true)
-          .andThen(runOnce(() -> elevatorOL(0, false)))
-          .andThen(runOnce(() -> resetEncoderPositions())); //AAAAAAAAAAND THEEEEEEEEEEN
+    return run(() -> runElevator(false, 0, -3));
+          //.until(() -> var_elevswlower = true)
+          //.andThen(runOnce(() -> elevatorOL(0, false)))
+          //.andThen(runOnce(() -> resetEncoderPositions())); //AAAAAAAAAAND THEEEEEEEEEEN
   }
 
   /**Method to call and operate elevator.
@@ -208,15 +209,15 @@ public class Elevator extends SubsystemBase {
 
   /**Resets the encoders for the elevator to zero. Only call when the elevator is in home state (fully retracted).*/
   public Command resetEncoderPositions() {
-    return runOnce(() -> enc_elevleft.encoderReset()).andThen(runOnce(() -> enc_elevright.encoderReset()));
+    return runOnce(() -> enc_elevleft.setPosition(0)).andThen(runOnce(() -> enc_elevright.setPosition(0)));
   }
 
   @Override
   public void periodic() {
 
   //write encoder position to internal var
-  var_elevrightheight = enc_elevright.getPos();
-  var_elevleftheight = enc_elevleft.getPos();
+  var_elevrightheight = enc_elevright.getPosition();
+  var_elevleftheight = enc_elevleft.getPosition();
   var_elevheightavg = (var_elevrightheight + var_elevleftheight) / 2;
 
   //invert limit switches

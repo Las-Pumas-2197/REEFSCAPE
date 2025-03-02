@@ -74,14 +74,20 @@ public class Manipulator extends SubsystemBase {
   public void runManipulator(boolean CL_enabled, double angle, double OL_volts, double spin_volts) {
     if (CL_enabled) {
       setAngle(angle);
+      spinSetVoltage(spin_volts);
     } else {
       tiltSetVoltage(OL_volts);
+      spinSetVoltage(spin_volts);
     }
   }
 
   /**Returns the current position of the manipulator in rads. */
   public double getAngle() {
     return enc_wrist.getPosition();
+  }
+
+  public Command resetEncoder() {
+    return runOnce(() -> enc_wrist.setPosition(0));
   }
 
   @Override

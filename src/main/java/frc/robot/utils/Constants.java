@@ -138,7 +138,7 @@ public final class Constants {
     public static final double wrist_FFkV = 0;
     public static final double wrist_FFkG = 0;
     public static final double wrist_FFkA = 0;
-    public static final double wrist_PIDkP = 0.1;
+    public static final double wrist_PIDkP = 1;
     public static final double wrist_PIDkD = 0;
   }
 
