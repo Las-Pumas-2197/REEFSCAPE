@@ -243,7 +243,6 @@ public class RobotContainer {
     SmartDashboard.putNumber("Xpos", m_robotDrive.getPose().getX());
     SmartDashboard.putNumber("Ypos", m_robotDrive.getPose().getY());
     SmartDashboard.putNumber("Heading", m_robotDrive.getPose().getRotation().getRadians());
-    SmartDashboard.putNumber("FL module drive speed", m_robotDrive.getStates()[0].speedMetersPerSecond);
     SmartDashboard.putNumber("Voltage", pdh.getVoltage());
     SmartDashboard.putNumber("x axis", m_driverController.getLeftX());
     SmartDashboard.putNumber("y axis", m_driverController.getLeftY());
@@ -265,8 +264,8 @@ public class RobotContainer {
     SmartDashboard.putNumber("Elevator Encoder Avg", ElevatorEncoders[2]);
 
     //elevator limit switches
-    SmartDashboard.putBoolean("lower limit", m_Elevator.getSwitchStatuses()[1]);
-    SmartDashboard.putBoolean("upper limit", m_Elevator.getSwitchStatuses()[0]);
+    SmartDashboard.putBoolean("lower limit", m_Elevator.getSwitchStatuses()[0]);
+    SmartDashboard.putBoolean("upper limit", m_Elevator.getSwitchStatuses()[1]);
 
     //elevator control states
     SmartDashboard.putBoolean("elevator CL state", elevator_enableCL);
