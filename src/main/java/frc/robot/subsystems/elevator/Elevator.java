@@ -221,7 +221,7 @@ public class Elevator extends SubsystemBase {
   var_elevheightavg = (var_elevrightheight + var_elevleftheight) / 2;
 
   //invert limit switches
-  var_elevswlower = false;
+  var_elevswlower = sw_elevlower.get() ? false : true;
   var_elevswupper = sw_elevupper.get() ? false : true;
 
   //calculate the multipler for the drive speed based on the height of the elevator

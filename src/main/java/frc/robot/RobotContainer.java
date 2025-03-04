@@ -57,7 +57,7 @@ public class RobotContainer {
   private boolean elevator_enableCL; //true = CL enabled, false = OL enabled
   private double elevator_CLheight;
   private double elevator_OLvolts;
-  private static final double elevator_CLheightinc = 0.001; //amount to increment per scheduler cycle. multiply by 50 to get meters per second
+  //private static final double elevator_CLheightinc = 0.001; //amount to increment per scheduler cycle. multiply by 50 to get meters per second
 
   //used in operation of manipulator
   private double manipulator_angleCL;
