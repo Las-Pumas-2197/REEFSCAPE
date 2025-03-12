@@ -16,7 +16,6 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
  */
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
-  private Command m_autoTilt;
   private RobotContainer m_robotContainer;
 
   /**
@@ -57,12 +56,9 @@ public class Robot extends TimedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    
-    //tilt elevator forward
-    m_autoTilt = m_robotContainer.initializeElevator();
 
     //example auto command
-    m_autonomousCommand = m_robotContainer.exampleauto();
+    m_autonomousCommand = m_robotContainer.selectedAutonomous();
 
     /*
      * String autoSelected = SmartDashboard.getString("Auto Selector",
@@ -70,8 +66,6 @@ public class Robot extends TimedRobot {
      * = new MyAutoCommand(); break; case "Default Auto": default:
      * autonomousCommand = new ExampleCommand(); break; }
      */
-
-    m_autoTilt.schedule();
 
     // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {

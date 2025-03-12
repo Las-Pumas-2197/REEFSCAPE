@@ -109,19 +109,18 @@ public final class Constants {
     //controller settings
     public static final int elev_maxcurrent = 40;
     public static final int tilt_maxcurrent = 40;
-    public static final double elev_posfactor = 0.16896; //meters
+    public static final double elev_posfactor = 0.02149; //meters
     public static final double elev_velfactor = elev_posfactor / 60; //meters per second
-    public static final double elev_enc_maxrational = 0.01184; //meters per 20ms
     //PIDF settings, needs characterized
-    public static final double elev_maxvel = 0.59207; //meters per second
-    public static final double elev_maxacl = 0.25; //meters per second ^ 2
-    public static final double elev_FFkS = 0;
-    public static final double elev_FFkV = 0;
-    public static final double elev_FFkG = 0;
+    public static final double elev_maxheight = 1.9; //meters
+    public static final double elev_maxvel = 1.9; //meters per second
+    public static final double elev_maxacl = elev_maxvel * 2; //meters per second ^ 2
+    public static final double elev_FFkS = 0.15; //volts
+    public static final double elev_FFkV = 12 / elev_maxvel; //volts per m/s
+    public static final double elev_FFkG = 0.1; //volts
     public static final double elev_FFkA = 0;
-    public static final double elev_PIDkP = 0.1;
+    public static final double elev_PIDkP = 1.2;
     public static final double elev_PIDkD = 0;
-  
   }
 
   public static final class ManipulatorConstants {
@@ -133,12 +132,12 @@ public final class Constants {
     public static final double wrist_maxrational = 0;
     //PIDF settings, needs characterized
     public static final double wrist_maxvel = 5.94389;
-    public static final double wrist_maxaccel = 0.5; //smol
-    public static final double wrist_FFkS = 0;
-    public static final double wrist_FFkV = 0;
-    public static final double wrist_FFkG = 0;
+    public static final double wrist_maxaccel = Math.PI; //smol
+    public static final double wrist_FFkS = 0.05;
+    public static final double wrist_FFkV = 12 / wrist_maxvel;
+    public static final double wrist_FFkG = 0.1;
     public static final double wrist_FFkA = 0;
-    public static final double wrist_PIDkP = 1;
+    public static final double wrist_PIDkP = 2;
     public static final double wrist_PIDkD = 0;
   }
 

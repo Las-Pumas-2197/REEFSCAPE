@@ -13,6 +13,7 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
+import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -37,6 +38,7 @@ public class Elevator extends SubsystemBase {
   //PID controller, trapezoidal profile for height control
   private final TrapezoidProfile.Constraints prof_height;
   private final ProfiledPIDController pid_height;
+  private final ElevatorFeedforward ff_height;
 
   //limit switch status vars
   private final DigitalInput sw_elevupper;
@@ -54,6 +56,11 @@ public class Elevator extends SubsystemBase {
   private double var_elevleftheight;
   private double var_elevheightavg; //averaged height of elevator encoders
 
+  //elevator velocities
+  private double var_elevrightvel;
+  private double var_elevleftvel;
+  private double var_elevvelavg;
+
   //bools for inverted limit switch states
   private boolean var_elevswupper;
   private boolean var_elevswlower;
@@ -61,6 +68,10 @@ public class Elevator extends SubsystemBase {
   //applied volts to elevator
   private double var_slewedvolts;
   private double var_elevvolts;
+
+  //pid and ff volts
+  private double var_pidvolts;
+  private double var_ffvolts;
 
   //multiplier for drive speed based on elevator height
   private double var_drivespeedmult;
@@ -87,6 +98,10 @@ public class Elevator extends SubsystemBase {
     //pid controller
     prof_height = new TrapezoidProfile.Constraints(ElevatorConstants.elev_maxvel, ElevatorConstants.elev_maxacl);
     pid_height = new ProfiledPIDController(ElevatorConstants.elev_PIDkP, 0, ElevatorConstants.elev_PIDkD, prof_height);
+    ff_height = new ElevatorFeedforward(ElevatorConstants.elev_FFkS, ElevatorConstants.elev_FFkG, ElevatorConstants.elev_FFkV);
+
+    //pid controller tolerance
+    pid_height.setTolerance(0.1);
     
     //saftey switches
     sw_elevupper = new DigitalInput(0);
@@ -131,17 +146,19 @@ public class Elevator extends SubsystemBase {
   /**Command used to send a setpoint to the elevator and have it hold there.
    * @param height Height desired.
    */
-  public Command elevatorCL(double height) {
-    return runOnce(() -> pid_height.setGoal(height))
-          .andThen(run(() -> elevatorOL(pid_height.calculate(height) / ElevatorConstants.elev_maxvel * 12, false)));
+  public void elevatorCL(double height) {
+    pid_height.setGoal(height);
+    var_pidvolts = pid_height.calculate(var_elevheightavg) / ElevatorConstants.elev_maxvel * 12;
+    var_ffvolts = ff_height.calculate(pid_height.getSetpoint().velocity);
+    m_elevright.setVoltage(var_pidvolts + var_ffvolts);
+    m_elevleft.setVoltage(var_pidvolts + var_ffvolts);
   }
 
   /**Automatically runs a subroutine to retract the elevator at 1/4 speed, then stops and resets the encoders when the lower limit is reached. */
   public Command elevatorHome() {
-    return run(() -> runElevator(false, 0, -3));
-          //.until(() -> var_elevswlower = true)
-          //.andThen(runOnce(() -> elevatorOL(0, false)))
-          //.andThen(runOnce(() -> resetEncoderPositions())); //AAAAAAAAAAND THEEEEEEEEEEN
+    return runEnd(() -> runElevator(false, 0, -3), () -> runElevator(false, 0, 0))
+          .until(() -> var_elevswlower)
+          .finallyDo(() -> resetEncoderPositions());
   }
 
   /**Method to call and operate elevator.
@@ -168,8 +185,8 @@ public class Elevator extends SubsystemBase {
   /**Subroutine to bump elevator forward and trigger locks.*/
   public Command lockElevator() {
     return runOnce(() -> elTimer.start()).andThen(run(() ->
-      tiltSetVoltage(3)
-    )).until(() -> elTimer.get() > 0.5).andThen(runOnce(() -> 
+      tiltSetVoltage(6)
+    )).until(() -> elTimer.get() > 1).andThen(runOnce(() -> 
     tiltSetVoltage(0)
     ));
   }
@@ -191,7 +208,8 @@ public class Elevator extends SubsystemBase {
     return new double[] {
       var_elevrightheight,
       var_elevleftheight,
-      var_elevheightavg
+      var_elevheightavg,
+      var_elevvelavg
     };
   }
 
@@ -199,6 +217,8 @@ public class Elevator extends SubsystemBase {
     return new double[] {
       var_elevvolts,
       var_slewedvolts,
+      var_pidvolts,
+      var_ffvolts
     };
   }
 
@@ -212,17 +232,26 @@ public class Elevator extends SubsystemBase {
     return runOnce(() -> enc_elevleft.setPosition(0)).andThen(runOnce(() -> enc_elevright.setPosition(0)));
   }
 
+  public Command resetPIDF() {
+    return runOnce(() -> pid_height.reset(0));
+  }
+
   @Override
   public void periodic() {
 
   //write encoder position to internal var
   var_elevrightheight = enc_elevright.getPosition();
   var_elevleftheight = enc_elevleft.getPosition();
+  var_elevrightvel = enc_elevright.getVelocity();
+  var_elevleftvel = enc_elevleft.getVelocity();
   var_elevheightavg = (var_elevrightheight + var_elevleftheight) / 2;
+  var_elevvelavg = (var_elevleftvel + var_elevrightvel) / 2;
 
   //invert limit switches
   var_elevswlower = sw_elevlower.get() ? false : true;
   var_elevswupper = sw_elevupper.get() ? false : true;
+
+  
 
   //calculate the multipler for the drive speed based on the height of the elevator
   var_drivespeedmult = var_elevheightavg - ElevatorCalibration.elev_maxheight + 0.2;

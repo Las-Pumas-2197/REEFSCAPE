@@ -8,8 +8,10 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.PersistMode;
 
+import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utils.Configs;
@@ -29,6 +31,14 @@ public class Manipulator extends SubsystemBase {
   //feed forward and PID for wrist
   private final TrapezoidProfile.Constraints prof_wrist;
   private final ProfiledPIDController pid_wrist;
+  private final ArmFeedforward ff_wrist;
+
+  //pidf volts
+  private double var_pidvolts;
+  private double var_ffvolts;
+
+  //bools
+  private Timer timer_debounceTimer;
 
   /** Creates a new manipulator. */
   public Manipulator() {
@@ -42,9 +52,13 @@ public class Manipulator extends SubsystemBase {
     //encoders
     enc_wrist = m_wrist.getEncoder();
 
+    //timer
+    timer_debounceTimer = new Timer();
+
     //pid and FFs
     prof_wrist = new TrapezoidProfile.Constraints(Constants.ManipulatorConstants.wrist_maxvel, Constants.ManipulatorConstants.wrist_maxaccel);
     pid_wrist = new ProfiledPIDController(Constants.ManipulatorConstants.wrist_PIDkP, 0, Constants.ManipulatorConstants.wrist_PIDkD, prof_wrist);
+    ff_wrist = new ArmFeedforward(ManipulatorConstants.wrist_FFkS, ManipulatorConstants.wrist_FFkG, ManipulatorConstants.wrist_FFkV);
   }
 
   /**Primitive for operating manipulator tilt.
@@ -64,11 +78,11 @@ public class Manipulator extends SubsystemBase {
   /**Operate manipulator in closed loop to hold an angle.
    * @param angle The angle to hold at in rads.
    */
-  public Command setAngle(double angle){
-    return runOnce(() -> pid_wrist.setGoal(angle))
-          .andThen(runEnd(
-            () -> tiltSetVoltage(
-              (((pid_wrist.calculate(angle) / ManipulatorConstants.wrist_maxvel)) * 12)), () -> tiltSetVoltage(0)));
+  public void setAngle(double angle){
+    pid_wrist.setGoal(angle);
+    var_pidvolts = pid_wrist.calculate(enc_wrist.getPosition()) / ManipulatorConstants.wrist_maxvel * 12;
+    var_ffvolts = ff_wrist.calculate(enc_wrist.getPosition(), pid_wrist.getSetpoint().velocity);
+    m_wrist.setVoltage(var_pidvolts + var_ffvolts);
   }
 
   public void runManipulator(boolean CL_enabled, double angle, double OL_volts, double spin_volts) {
@@ -88,6 +102,24 @@ public class Manipulator extends SubsystemBase {
 
   public Command resetEncoder() {
     return runOnce(() -> enc_wrist.setPosition(0));
+  }
+
+  public double[] getManipulatorData() {
+    return new double[] {
+      var_pidvolts,
+      var_ffvolts
+    };
+  }
+
+  public boolean atSetpoint() {
+    if (pid_wrist.atSetpoint() && !timer_debounceTimer.isRunning()) {
+      timer_debounceTimer.start();
+    } else if (!pid_wrist.atSetpoint() && timer_debounceTimer.isRunning()) {
+      timer_debounceTimer.stop();
+      timer_debounceTimer.reset();
+    }
+
+    return timer_debounceTimer.hasElapsed(0.5);
   }
 
   @Override
