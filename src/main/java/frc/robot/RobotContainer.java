@@ -8,6 +8,7 @@ import static edu.wpi.first.wpilibj2.command.Commands.*;
 
 import java.util.jar.Attributes.Name;
 
+import com.fasterxml.jackson.databind.util.Named;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
@@ -29,6 +30,7 @@ import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -48,11 +50,8 @@ public class RobotContainer {
   private final CommandXboxController m_operatorController = new CommandXboxController(OIConstants.kOperatorControllerPort);
   private final CommandJoystick m_buttons = new CommandJoystick(3);
 
-  //auto routines
-  private final PathPlannerAuto auto_test;
-
   //Auto Sendable chooser
-  private final SendableChooser autoChooser;
+  private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
   //field 2d object for pose estimation visualization in elastic
   private final Field2d m_field = new Field2d();
@@ -72,22 +71,25 @@ public class RobotContainer {
   private double manipulator_OLvolts;
   private double manipulator_spinvolts;
 
+  //test
+  private boolean auto_triggered;
+
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
 
-    //auto commands
-    NamedCommands.registerCommand("L1", poseL1());
+    m_robotDrive.runAutoBuilder();
 
-    //autos
-    auto_test = new PathPlannerAuto("Test Auto");
+    NamedCommands.registerCommand("Intake", intake());
+    NamedCommands.registerCommand("Outtake", outtake());
+    NamedCommands.registerCommand("Home", m_Elevator.elevatorHome());
+    NamedCommands.registerCommand("Lift to L1", poseL1());
+    NamedCommands.registerCommand("Lift to L4", poseL4());
 
-    //Configure auto chooser
-    autoChooser = AutoBuilder.buildAutoChooser();
-    
-    SmartDashboard.putData(autoChooser);
+    autoChooser.addOption("Auto 1", AutoBuilder.buildAuto("Auto 1"));
+    SmartDashboard.putData("Auto Selector", autoChooser);
 
     // Configure the button bindings
     configureButtonBindings();
@@ -194,8 +196,10 @@ public class RobotContainer {
     m_buttons.button(6).onTrue(poseHome());
 
     //manipulator in and out
-    m_buttons.button(11).whileTrue(runEnd(() -> manipulator_spinvolts = -12, () -> manipulator_spinvolts = 0));
-    m_buttons.button(12).whileTrue(runEnd(() -> manipulator_spinvolts = 12, () -> manipulator_spinvolts = 0));
+    m_buttons.button(11).whileTrue(outtake());
+    m_buttons.button(12).whileTrue(intake());
+
+    //auto triggers
   }
 
   //elevator commands
@@ -213,15 +217,23 @@ public class RobotContainer {
   }
 
   public Command poseL4() {
-    return runOnce(() -> elevator_CLheight = 1.83).andThen(runOnce(() -> manipulator_angleCL = -1.65));
+    return runOnce(() -> elevator_CLheight = 1.84).andThen(runOnce(() -> manipulator_angleCL = -1.75));
   }
 
   public Command poseHome() {
     return runOnce(() -> manipulator_angleCL = 0).andThen(waitSeconds(0.5)).andThen(waitUntil(() -> m_Manipulator.atSetpoint())).andThen(runOnce(() -> elevator_CLheight = 0));
   }
 
+  public Command outtake() {
+    return runEnd(() -> manipulator_spinvolts = -6, () -> manipulator_spinvolts = 0);
+  }
+
+  public Command intake() {
+    return runEnd(() -> manipulator_spinvolts = 12, () -> manipulator_spinvolts = 0);
+  }
+
   public Command selectedAutonomous() {
-    return auto_test;
+    return autoChooser.getSelected();
   }
 
   public void telemetry() {
@@ -274,5 +286,8 @@ public class RobotContainer {
     //manipulator position
     SmartDashboard.putNumber("manipulator position", m_Manipulator.getAngle());
     SmartDashboard.putBoolean("manipulator at setpoint", m_Manipulator.atSetpoint());
+
+    //test
+    SmartDashboard.putBoolean("auto trigger", auto_triggered);
   }
 }
