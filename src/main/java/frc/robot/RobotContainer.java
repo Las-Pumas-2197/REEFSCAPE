@@ -6,12 +6,8 @@ package frc.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 
-import java.util.jar.Attributes.Name;
-
-import com.fasterxml.jackson.databind.util.Named;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.MathUtil;
@@ -26,11 +22,9 @@ import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.Manipulator;
 import frc.robot.utils.Constants.OIConstants;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -61,18 +55,8 @@ public class RobotContainer {
   private boolean useHeadingCorrection;
   private boolean fieldOriented;
 
-  //used in operation of elevator
-  private boolean elevator_enableCL; //true = CL enabled, false = OL enabled
-  private double elevator_CLheight;
-  private double elevator_OLvolts;
 
-  //used in operation of manipulator
-  private double manipulator_angleCL;
-  private double manipulator_OLvolts;
-  private double manipulator_spinvolts;
 
-  //test
-  private boolean auto_triggered;
 
 
   /**
@@ -80,18 +64,20 @@ public class RobotContainer {
    */
   public RobotContainer() {
 
+    //run autobuilder
     m_robotDrive.runAutoBuilder();
 
-    NamedCommands.registerCommand("Intake", intake());
-    NamedCommands.registerCommand("Outtake", outtake());
-    NamedCommands.registerCommand("Home", m_Elevator.elevatorHome());
-    NamedCommands.registerCommand("Lift to L1", poseL1());
-    NamedCommands.registerCommand("Lift to L4", poseL4());
+    //register commands
+    NamedCommands.registerCommand("Intake", null);
+    NamedCommands.registerCommand("Outtake", null);
+    NamedCommands.registerCommand("Lift to L1", null);
+    NamedCommands.registerCommand("Lift to L4", null);
 
+    //add autos and post data to smart dashboard
     autoChooser.addOption("Auto 1", AutoBuilder.buildAuto("Auto 1"));
     SmartDashboard.putData("Auto Selector", autoChooser);
 
-    // Configure the button bindings
+    //Configure the button bindings
     configureButtonBindings();
 
     //camera server
@@ -103,14 +89,7 @@ public class RobotContainer {
     fieldOriented = true;
     headingtransformed = 0;
 
-    //set starting options for elevator
-    elevator_enableCL = true;
-    elevator_CLheight = 0;
-    
-    //set starting config for manipulator
-    manipulator_angleCL = 0;
-
-    // Configure default commands
+    //Configure default commands
 
     m_robotDrive.setDefaultCommand(
         // The left stick controls translation of the robot.
@@ -126,28 +105,6 @@ public class RobotContainer {
                 headingtransformed
               ),
             m_robotDrive));
-
-    //automatically run elevator
-    m_Elevator.setDefaultCommand(
-      new RunCommand(
-        () -> m_Elevator.runElevator(
-          elevator_enableCL,
-          elevator_CLheight,
-          elevator_OLvolts
-        ),
-      m_Elevator));
-
-    //automatically run manipulator
-    m_Manipulator.setDefaultCommand(
-      new RunCommand(
-        () -> m_Manipulator.runManipulator(
-          elevator_enableCL,
-          manipulator_angleCL,
-          manipulator_OLvolts,
-          manipulator_spinvolts
-        ),
-      m_Manipulator));
-    
   }
 
   private void configureButtonBindings() {
@@ -178,58 +135,27 @@ public class RobotContainer {
 
 
 
-    //elevator state toggle between OL and CL, temporarily disabled for testing
-    m_operatorController.a().onTrue(runOnce(() -> elevator_enableCL = elevator_enableCL ? false : true));
-    m_operatorController.x().onTrue(m_Manipulator.resetEncoder());
+    //reset encoders on elevator
+    m_operatorController.x().onTrue(m_Manipulator.resetEncoder().andThen(m_Elevator.resetEncoderPositions()));
 
     //elevator OL button bindings
-    m_buttons.button(7).whileTrue(runEnd(() -> elevator_OLvolts = 6, () -> elevator_OLvolts = 0));
-    m_buttons.button(8).whileTrue(runEnd(() -> elevator_OLvolts = -6, () -> elevator_OLvolts = 0));
-    m_buttons.button(9).whileTrue(runEnd(() -> manipulator_OLvolts = 3, () -> manipulator_OLvolts = 0));
-    m_buttons.button(10).whileTrue(runEnd(() -> manipulator_OLvolts = -3, () -> manipulator_OLvolts = 0));
+    m_buttons.button(7).whileTrue(null); //up
+    m_buttons.button(8).whileTrue(null); //down
+    m_buttons.button(9).whileTrue(null); //manpi up
+    m_buttons.button(10).whileTrue(null); //manip down
 
     //elevator CL button bindings
-    m_buttons.button(7).onTrue(poseL4());
-    m_buttons.button(8).onTrue(poseL3());
-    m_buttons.button(9).onTrue(poseL2());
-    m_buttons.button(10).onTrue(poseL1());
-    m_buttons.button(6).onTrue(poseHome());
+    m_buttons.button(7).onTrue(null); //L4
+    m_buttons.button(8).onTrue(null); //L3
+    m_buttons.button(9).onTrue(null); //L2
+    m_buttons.button(10).onTrue(null); //L1
+    m_buttons.button(6).onTrue(null); //home
 
     //manipulator in and out
-    m_buttons.button(11).whileTrue(outtake());
-    m_buttons.button(12).whileTrue(intake());
+    m_buttons.button(11).whileTrue(null);
+    m_buttons.button(12).whileTrue(null);
 
     //auto triggers
-  }
-
-  //elevator commands
-
-  public Command poseL1() {
-    return runOnce(() -> elevator_CLheight = 0.3).andThen(runOnce(() -> manipulator_angleCL = -1));
-  }
-
-  public Command poseL2() {
-    return runOnce(() -> elevator_CLheight = 0.85).andThen(runOnce(() -> manipulator_angleCL = -1.9));
-  }
-
-  public Command poseL3() {
-    return runOnce(() -> elevator_CLheight = 1.2).andThen(runOnce(() -> manipulator_angleCL = -1.9));
-  }
-
-  public Command poseL4() {
-    return runOnce(() -> elevator_CLheight = 1.84).andThen(runOnce(() -> manipulator_angleCL = -1.75));
-  }
-
-  public Command poseHome() {
-    return runOnce(() -> manipulator_angleCL = 0).andThen(waitSeconds(0.5)).andThen(waitUntil(() -> m_Manipulator.atSetpoint())).andThen(runOnce(() -> elevator_CLheight = 0));
-  }
-
-  public Command outtake() {
-    return runEnd(() -> manipulator_spinvolts = -6, () -> manipulator_spinvolts = 0);
-  }
-
-  public Command intake() {
-    return runEnd(() -> manipulator_spinvolts = 12, () -> manipulator_spinvolts = 0);
   }
 
   public Command selectedAutonomous() {
@@ -266,13 +192,6 @@ public class RobotContainer {
     SmartDashboard.putBoolean("lower limit", m_Elevator.getSwitchStatuses()[0]);
     SmartDashboard.putBoolean("upper limit", m_Elevator.getSwitchStatuses()[1]);
 
-    //elevator control states
-    SmartDashboard.putBoolean("elevator CL state", elevator_enableCL);
-    SmartDashboard.putNumber("elevator CL height", elevator_CLheight);
-    SmartDashboard.putNumber("elevator OL volts", elevator_OLvolts);
-    SmartDashboard.putBoolean("elevator homing command state", m_Elevator.elevatorHome().isFinished());
-    SmartDashboard.putBoolean("elevator run command state", m_Elevator.getDefaultCommand().isScheduled());
-
     //internal elevator stuff
     SmartDashboard.putNumber("elevator volts", m_Elevator.getVolts()[0]);
     SmartDashboard.putNumber("slewed elevator volts", m_Elevator.getVolts()[1]);
@@ -286,8 +205,5 @@ public class RobotContainer {
     //manipulator position
     SmartDashboard.putNumber("manipulator position", m_Manipulator.getAngle());
     SmartDashboard.putBoolean("manipulator at setpoint", m_Manipulator.atSetpoint());
-
-    //test
-    SmartDashboard.putBoolean("auto trigger", auto_triggered);
   }
 }
