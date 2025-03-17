@@ -25,7 +25,7 @@ public class manipOuttake extends Command {
 
   @Override
   public void execute() {
-    runEnd(() -> m_ManipulatorSpike.shoot(12), () -> m_ManipulatorSpike.shoot(0))
+    runEnd(() -> m_ManipulatorSpike.shoot(-12), () -> m_ManipulatorSpike.shoot(0))
     .withTimeout(1)
     .finallyDo(() -> finished = true);
   }

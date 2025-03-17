@@ -115,6 +115,8 @@ public class RobotContainer {
                 useHeadingCorrection,
                 headingtransformed),
             m_robotDrive));
+
+    //m_ElevatorLift.setDefaultCommand(c_PoseHome); //default command so elevator retracts when no command is scheduled
   }
 
   private void configureButtonBindings() {
@@ -220,5 +222,12 @@ public class RobotContainer {
     SmartDashboard.putData(m_ElevatorLift.getCurrentCommand());
     SmartDashboard.putData(m_ManipulatorWrist.getCurrentCommand());
     SmartDashboard.putData(m_ManipulatorSpike.getCurrentCommand());
+
+    SmartDashboard.putBoolean("elevatorLock scheduled", c_ElevatorLock.isScheduled());
+    SmartDashboard.putBoolean("elevatorManual scheduled", c_ElevatorManual.isScheduled());
+    SmartDashboard.putBoolean("manipintake scheduled", c_ManipIntake.isScheduled());
+    SmartDashboard.putBoolean("manipouttake scheduled", c_ManipOuttake.isScheduled());
+    SmartDashboard.putBoolean("poseHome scheduled", c_PoseHome.isScheduled());
+    SmartDashboard.putBoolean("poseL1 scheduled", c_PoseL1.isScheduled());
   }
 }

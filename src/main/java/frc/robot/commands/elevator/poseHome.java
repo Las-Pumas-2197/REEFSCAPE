@@ -4,8 +4,6 @@
 
 package frc.robot.commands.elevator;
 
-import static edu.wpi.first.wpilibj2.command.Commands.*;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.elevator.ElevatorLift;
 import frc.robot.subsystems.elevator.ManipulatorWrist;
@@ -27,10 +25,12 @@ public class poseHome extends Command {
 
   @Override
   public void execute() {
-    parallel(
-      waitUntil(() -> m_ManipulatorWrist.atSetpoint()).andThen(run(() -> m_ElevatorLift.setHeight(ElevatorCalibration.elev_homeheight))),
-      run(() -> m_ManipulatorWrist.setAngle(ElevatorCalibration.wrist_homeangle))
-    );
+    m_ManipulatorWrist.setAngle(ElevatorCalibration.wrist_homeangle);
+    if (m_ManipulatorWrist.atSetpoint()) {
+      m_ElevatorLift.setHeight(ElevatorCalibration.elev_homeheight);
+    } else {
+      m_ElevatorLift.setHeight(m_ElevatorLift.getEncoderPositions()[2]);
+    }
   }
 
   @Override
