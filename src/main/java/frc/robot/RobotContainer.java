@@ -141,7 +141,7 @@ public class RobotContainer {
     //elevator OL button bindings
     m_buttons.button(7).whileTrue(null); //up
     m_buttons.button(8).whileTrue(null); //down
-    m_buttons.button(9).whileTrue(null); //manpi up
+    m_buttons.button(9).whileTrue(null); //manip up
     m_buttons.button(10).whileTrue(null); //manip down
 
     //elevator CL button bindings
@@ -154,8 +154,6 @@ public class RobotContainer {
     //manipulator in and out
     m_buttons.button(11).whileTrue(null);
     m_buttons.button(12).whileTrue(null);
-
-    //auto triggers
   }
 
   public Command selectedAutonomous() {

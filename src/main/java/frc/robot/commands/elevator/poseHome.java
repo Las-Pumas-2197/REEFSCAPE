@@ -4,35 +4,28 @@
 
 package frc.robot.commands.elevator;
 
-import static edu.wpi.first.wpilibj2.command.Commands.*;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.elevator.Elevator;
+import frc.robot.subsystems.elevator.Manipulator;
 
-public class lockElevator extends Command {
+public class poseHome extends Command {
 
   private final Elevator m_Elevator;
+  private final Manipulator m_Manipulator;
 
-  public lockElevator(Elevator elevator) {
-
-    //pass subystem to class level
+  public poseHome(Elevator elevator, Manipulator manipulator) {
     m_Elevator = elevator;
-    addRequirements(m_Elevator);
+    m_Manipulator = manipulator;
   }
 
   @Override
   public void initialize() {}
 
   @Override
-  public void execute() {
-    //tilt elevator for 1 second until locked
-    run(() -> m_Elevator.tilt(6)).withTimeout(1);
-  }
+  public void execute() {}
 
   @Override
-  public void end(boolean interrupted) {
-    m_Elevator.allStop();
-  }
+  public void end(boolean interrupted) {}
 
   @Override
   public boolean isFinished() {

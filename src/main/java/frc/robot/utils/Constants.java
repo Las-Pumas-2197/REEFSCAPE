@@ -4,7 +4,6 @@
 
 package frc.robot.utils;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -112,7 +111,6 @@ public final class Constants {
     public static final double elev_posfactor = 0.02149; //meters
     public static final double elev_velfactor = elev_posfactor / 60; //meters per second
     //PIDF settings, needs characterized
-    public static final double elev_maxheight = 1.9; //meters
     public static final double elev_maxvel = 1.9; //meters per second
     public static final double elev_maxacl = elev_maxvel * 2; //meters per second ^ 2
     public static final double elev_FFkS = 0.15; //volts
@@ -131,8 +129,8 @@ public final class Constants {
     public static final double wrist_velfactor = wrist_posfactor / 60; //rads/s
     public static final double wrist_maxrational = 0;
     //PIDF settings, needs characterized
-    public static final double wrist_maxvel = 5.94389;
-    public static final double wrist_maxaccel = Math.PI; //smol
+    public static final double wrist_maxvel = 5.94389; //rads
+    public static final double wrist_maxaccel = Math.PI; //rads/s, smol
     public static final double wrist_FFkS = 0.05;
     public static final double wrist_FFkV = 12 / wrist_maxvel;
     public static final double wrist_FFkG = 0.1;
@@ -144,36 +142,33 @@ public final class Constants {
   //these must be measured and adjusted accordingly
   public static final class ElevatorCalibration {
     //reef height calibration data
-    public static final double elev_L1height = 0.2;
-    public static final double elev_L2height = 0.3;
-    public static final double elev_L3height = 0.4;
-    public static final double elev_L4height = 0.5;
-    public static final double elev_loadheight = 0.1;
-    public static final double elev_maxheight = 1;
+    public static final double elev_L1height = 0;
+    public static final double elev_L2height = 0;
+    public static final double elev_L3height = 0;
+    public static final double elev_L4height = 0;
+    public static final double elev_algae1height = 0;
+    public static final double elev_algae2height = 0;
+    public static final double elev_homeangle = 0;
+    public static final double elev_maxheight = 1.9;
     //reef angle calibration data
     public static final double wrist_L1angle = 0;
     public static final double wrist_L2angle = 0;
     public static final double wrist_L3angle = 0;
     public static final double wrist_L4angle = 0;
-    public static final double wrist_loadangle = 0;
+    public static final double elev_algae1angle = 0;
+    public static final double elev_algae2angle = 0;
+    public static final double wrist_homeangle = 0;
   }
 
   //these must be measured and adjusted accordingly, angles for heading control
   public static final class DrivetrainCalibration {
     public static final double drive_leftcoralstation = 0;
     public static final double drive_rightcoralstation = 0;
-    public static final double drive_reef0 = 0;
-    public static final double drive_reef1 = 0;
-    public static final double drive_reef2 = 0;
-    public static final double drive_reef3 = 0;
-    public static final double drive_reef4 = 0;
-    public static final double drive_reef6 = 0;
-  }
-
-  //these must be measured and adjusted accordingly, poses for autonomous
-  public static final class PoseCalibration {
-    public static final Pose2d drive_startpose1 = new Pose2d();
-    public static final Pose2d drive_startpose2 = new Pose2d();
-    public static final Pose2d drive_startpose3 = new Pose2d();
+    public static final double drive_reefA = 0;
+    public static final double drive_reefB = 0;
+    public static final double drive_reefC = 0;
+    public static final double drive_reefD = 0;
+    public static final double drive_reefE = 0;
+    public static final double drive_reefF = 0;
   }
 }
