@@ -33,7 +33,7 @@ public class MAXSwerveModule {
 
   private double m_chassisAngularOffset = 0;
   private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());
-  
+
   private final SlewRateLimiter slewRateLimiter;
 
   /**
@@ -53,7 +53,8 @@ public class MAXSwerveModule {
     m_drivingClosedLoopController = m_drivingSpark.getClosedLoopController();
     m_turningClosedLoopController = m_turningSpark.getClosedLoopController();
 
-    slewRateLimiter = new SlewRateLimiter(DriveConstants.kMaxAccelerationMetersPerSecond, 2*-DriveConstants.kMaxSpeedMetersPerSecond, 0);
+    slewRateLimiter = new SlewRateLimiter(DriveConstants.kMaxAccelerationMetersPerSecond,
+        2 * -DriveConstants.kMaxSpeedMetersPerSecond, 0);
 
     // Apply the respective configurations to the SPARKS. Reset parameters before
     // applying the configuration to bring the SPARK to a known good state. Persist
@@ -107,10 +108,10 @@ public class MAXSwerveModule {
     correctedDesiredState.optimize(new Rotation2d(m_turningEncoder.getPosition()));
 
     // limit acceleration using slew when true, no rate limit when false
-    double speed =
-      ratelimit ?
-        Math.signum(correctedDesiredState.speedMetersPerSecond) * slewRateLimiter.calculate(Math.abs(correctedDesiredState.speedMetersPerSecond)) :
-        correctedDesiredState.speedMetersPerSecond;
+    double speed = ratelimit
+        ? Math.signum(correctedDesiredState.speedMetersPerSecond)
+            * slewRateLimiter.calculate(Math.abs(correctedDesiredState.speedMetersPerSecond))
+        : correctedDesiredState.speedMetersPerSecond;
 
     // Command driving and turning SPARKS towards their respective setpoints.
     m_drivingClosedLoopController.setReference(speed, ControlType.kVelocity);

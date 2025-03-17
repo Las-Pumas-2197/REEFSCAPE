@@ -4,19 +4,19 @@
 
 package frc.robot.commands.elevator;
 
-import static edu.wpi.first.wpilibj2.command.Commands.*;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.elevator.ElevatorLift;
 import frc.robot.subsystems.elevator.ManipulatorWrist;
-import frc.robot.utils.Constants.ElevatorCalibration;
 
-public class poseHome extends Command {
-  
+public class elevatorManual extends Command {
+
   private final ElevatorLift m_ElevatorLift;
   private final ManipulatorWrist m_ManipulatorWrist;
 
-  public poseHome(ElevatorLift elevatorlift, ManipulatorWrist manipulatorwrist) {
+  private double liftvolts;
+  private double tiltvolts;
+
+  public elevatorManual(ElevatorLift elevatorlift, ManipulatorWrist manipulatorwrist) {
     m_ElevatorLift = elevatorlift;
     m_ManipulatorWrist = manipulatorwrist;
     addRequirements(m_ElevatorLift, m_ManipulatorWrist);
@@ -27,18 +27,28 @@ public class poseHome extends Command {
 
   @Override
   public void execute() {
-    parallel(
-      waitUntil(() -> m_ManipulatorWrist.atSetpoint()).andThen(run(() -> m_ElevatorLift.setHeight(ElevatorCalibration.elev_homeheight))),
-      run(() -> m_ManipulatorWrist.setAngle(ElevatorCalibration.wrist_homeangle))
-    );
+      m_ElevatorLift.lift(liftvolts);
+      m_ManipulatorWrist.tilt(tiltvolts);
   }
 
   @Override
   public void end(boolean interrupted) {
+    liftvolts = 0;
+    tiltvolts = 0;
+    m_ElevatorLift.lift(liftvolts);
+    m_ManipulatorWrist.tilt(tiltvolts);
   }
 
   @Override
   public boolean isFinished() {
     return false;
+  }
+
+  public void liftvolts(double volts) {
+    liftvolts = volts;
+  }
+
+  public void tiltvolts(double volts) {
+    tiltvolts = volts;
   }
 }

@@ -104,13 +104,15 @@ public final class Constants {
     public static final double kFreeSpeedRpm = 6784;
   }
 
-  public static final class ElevatorConstants {
+  public static final class ElevatorLiftConstants {
+    //node IDs
+    public static final int elev_leftID = 0;
+    public static final int elev_rightID = 0;
     //controller settings
     public static final int elev_maxcurrent = 40;
-    public static final int tilt_maxcurrent = 40;
     public static final double elev_posfactor = 0.02149; //meters
     public static final double elev_velfactor = elev_posfactor / 60; //meters per second
-    //PIDF settings, needs characterized
+    //PIDF settings
     public static final double elev_maxvel = 1.9; //meters per second
     public static final double elev_maxacl = elev_maxvel * 2; //meters per second ^ 2
     public static final double elev_FFkS = 0.15; //volts
@@ -119,6 +121,14 @@ public final class Constants {
     public static final double elev_FFkA = 0;
     public static final double elev_PIDkP = 1.2;
     public static final double elev_PIDkD = 0;
+  }
+
+  public static final class ElevatorTiltConstants {
+    //node IDs
+    public static final int tilt_leftID = 0;
+    public static final int tilt_rightID = 0;
+    //controller settings
+    public static final int tilt_maxcurrent = 40;
   }
 
   public static final class ManipulatorConstants {
@@ -142,21 +152,21 @@ public final class Constants {
   //these must be measured and adjusted accordingly
   public static final class ElevatorCalibration {
     //reef height calibration data
-    public static final double elev_L1height = 0;
-    public static final double elev_L2height = 0;
-    public static final double elev_L3height = 0;
-    public static final double elev_L4height = 0;
+    public static final double elev_L1height = 0.3;
+    public static final double elev_L2height = 0.85;
+    public static final double elev_L3height = 1.2;
+    public static final double elev_L4height = 1.84;
     public static final double elev_algae1height = 0;
     public static final double elev_algae2height = 0;
-    public static final double elev_homeangle = 0;
+    public static final double elev_homeheight= 0;
     public static final double elev_maxheight = 1.9;
     //reef angle calibration data
-    public static final double wrist_L1angle = 0;
-    public static final double wrist_L2angle = 0;
-    public static final double wrist_L3angle = 0;
-    public static final double wrist_L4angle = 0;
-    public static final double elev_algae1angle = 0;
-    public static final double elev_algae2angle = 0;
+    public static final double wrist_L1angle = -1;
+    public static final double wrist_L2angle = -1.9;
+    public static final double wrist_L3angle = -1.0;
+    public static final double wrist_L4angle = -1.75;
+    public static final double wrist_algae1angle = 0;
+    public static final double wrist_algae2angle = 0;
     public static final double wrist_homeangle = 0;
   }
 

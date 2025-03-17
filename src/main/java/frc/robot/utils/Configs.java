@@ -5,7 +5,8 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
-import frc.robot.utils.Constants.ElevatorConstants;
+import frc.robot.utils.Constants.ElevatorLiftConstants;
+import frc.robot.utils.Constants.ElevatorTiltConstants;
 import frc.robot.utils.Constants.ManipulatorConstants;
 import frc.robot.utils.Constants.ModuleConstants;
 
@@ -64,14 +65,14 @@ public final class Configs {
                 static {
                         tiltConfig
                                 .idleMode(IdleMode.kBrake)
-                                .smartCurrentLimit(ElevatorConstants.tilt_maxcurrent);
+                                .smartCurrentLimit(ElevatorTiltConstants.tilt_maxcurrent);
                         elevConfig
                                 .idleMode(IdleMode.kBrake)
                                 .inverted(false)
-                                .smartCurrentLimit(ElevatorConstants.elev_maxcurrent);
+                                .smartCurrentLimit(ElevatorLiftConstants.elev_maxcurrent);
                         elevConfig.encoder
-                                .positionConversionFactor(ElevatorConstants.elev_posfactor)
-                                .velocityConversionFactor(ElevatorConstants.elev_velfactor);
+                                .positionConversionFactor(ElevatorLiftConstants.elev_posfactor)
+                                .velocityConversionFactor(ElevatorLiftConstants.elev_velfactor);
                 }
 
         }

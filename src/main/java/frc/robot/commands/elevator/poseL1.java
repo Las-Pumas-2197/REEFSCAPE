@@ -11,14 +11,14 @@ import frc.robot.subsystems.elevator.ElevatorLift;
 import frc.robot.subsystems.elevator.ManipulatorWrist;
 import frc.robot.utils.Constants.ElevatorCalibration;
 
-public class poseHome extends Command {
+public class poseL1 extends Command {
   
   private final ElevatorLift m_ElevatorLift;
   private final ManipulatorWrist m_ManipulatorWrist;
 
-  public poseHome(ElevatorLift elevatorlift, ManipulatorWrist manipulatorwrist) {
-    m_ElevatorLift = elevatorlift;
-    m_ManipulatorWrist = manipulatorwrist;
+  public poseL1(ElevatorLift elevator, ManipulatorWrist manipulator) {
+    m_ElevatorLift = elevator;
+    m_ManipulatorWrist = manipulator;
     addRequirements(m_ElevatorLift, m_ManipulatorWrist);
   }
 
@@ -28,8 +28,8 @@ public class poseHome extends Command {
   @Override
   public void execute() {
     parallel(
-      waitUntil(() -> m_ManipulatorWrist.atSetpoint()).andThen(run(() -> m_ElevatorLift.setHeight(ElevatorCalibration.elev_homeheight))),
-      run(() -> m_ManipulatorWrist.setAngle(ElevatorCalibration.wrist_homeangle))
+      run(() -> m_ElevatorLift.setHeight(ElevatorCalibration.elev_L1height)),
+      run(() -> m_ManipulatorWrist.setAngle(ElevatorCalibration.wrist_L1angle))
     );
   }
 
