@@ -153,9 +153,9 @@ public class RobotContainer {
     m_buttons.button(12).whileTrue(c_ManipOuttake);
 
     // elevator CL button bindings
-    m_buttons.button(7).onTrue(null); // L4
-    m_buttons.button(8).onTrue(null); // L3
-    m_buttons.button(9).onTrue(null); // L2
+    //m_buttons.button(7).onTrue(null); // L4
+    //m_buttons.button(8).onTrue(null); // L3
+    //m_buttons.button(9).onTrue(null); // L2
     m_buttons.button(10).and(() -> !c_ElevatorManual.isScheduled()).onTrue(c_PoseL1); // L1
     m_buttons.button(6).and(() -> !c_ElevatorManual.isScheduled()).onTrue(c_PoseHome); // home
 
