@@ -13,7 +13,6 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.utils.Configs;
 import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.ManipulatorConstants;
@@ -95,7 +94,8 @@ public class ManipulatorWrist extends SubsystemBase {
   }
 
   public boolean atSetpoint() {
-    return new Trigger(() -> pid_wrist.atSetpoint()).debounce(1).getAsBoolean();
+    //return new Trigger(() -> pid_wrist.atSetpoint()).debounce(1).getAsBoolean();
+    return pid_wrist.atSetpoint();
   }
 
   public Command resetPIDF() {

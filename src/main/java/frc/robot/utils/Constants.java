@@ -140,12 +140,12 @@ public final class Constants {
     public static final double wrist_maxrational = 0;
     //PIDF settings, needs characterized
     public static final double wrist_maxvel = 5.94389; //rads
-    public static final double wrist_maxaccel = Math.PI; //rads/s, smol
+    public static final double wrist_maxaccel = 2*Math.PI; //rads/s, smol
     public static final double wrist_FFkS = 0.05;
     public static final double wrist_FFkV = 12 / wrist_maxvel;
     public static final double wrist_FFkG = 0.1;
     public static final double wrist_FFkA = 0;
-    public static final double wrist_PIDkP = 2;
+    public static final double wrist_PIDkP = 1;
     public static final double wrist_PIDkD = 0;
   }
 
@@ -163,7 +163,7 @@ public final class Constants {
     //reef angle calibration data
     public static final double wrist_L1angle = -1;
     public static final double wrist_L2angle = -1.9;
-    public static final double wrist_L3angle = -1.0;
+    public static final double wrist_L3angle = -1.9;
     public static final double wrist_L4angle = -1.75;
     public static final double wrist_algae1angle = 0;
     public static final double wrist_algae2angle = 0;

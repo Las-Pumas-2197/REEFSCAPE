@@ -6,6 +6,9 @@ package frc.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 
+import java.net.CacheRequest;
+
+import com.fasterxml.jackson.databind.util.Named;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
@@ -24,6 +27,9 @@ import frc.robot.commands.elevator.elevatorLock;
 import frc.robot.commands.elevator.elevatorManual;
 import frc.robot.commands.elevator.poseHome;
 import frc.robot.commands.elevator.poseL1;
+import frc.robot.commands.elevator.poseL2;
+import frc.robot.commands.elevator.poseL3;
+import frc.robot.commands.elevator.poseL4;
 import frc.robot.subsystems.drive.DriveSubsystem;
 import frc.robot.subsystems.elevator.ElevatorLift;
 import frc.robot.subsystems.elevator.ElevatorTilt;
@@ -51,6 +57,10 @@ public class RobotContainer {
   private final manipOuttake c_ManipOuttake = new manipOuttake(m_ManipulatorSpike);
   private final poseHome c_PoseHome = new poseHome(m_ElevatorLift, m_ManipulatorWrist);
   private final poseL1 c_PoseL1 = new poseL1(m_ElevatorLift, m_ManipulatorWrist);
+  private final poseL2 c_PoseL2 = new poseL2(m_ElevatorLift, m_ManipulatorWrist);
+  private final poseL3 c_PoseL3 = new poseL3(m_ElevatorLift, m_ManipulatorWrist);
+  private final poseL4 c_PoseL4 = new poseL4(m_ElevatorLift, m_ManipulatorWrist);
+
 
   // The driver's controller
   private final CommandXboxController m_driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
@@ -79,10 +89,13 @@ public class RobotContainer {
     m_robotDrive.runAutoBuilder();
 
     // register commands
-    // NamedCommands.registerCommand("Intake", null);
-    // NamedCommands.registerCommand("Outtake", null);
-    // NamedCommands.registerCommand("Lift to L1", null);
-    // NamedCommands.registerCommand("Lift to L4", null);
+    NamedCommands.registerCommand("Intake", c_ManipIntake);
+    NamedCommands.registerCommand("Outtake", c_ManipOuttake);
+    NamedCommands.registerCommand("Home", c_PoseHome);
+    NamedCommands.registerCommand("Lift to L1", c_PoseL1);
+    NamedCommands.registerCommand("Lift to L2", c_PoseL2);
+    NamedCommands.registerCommand("Lift to L3", c_PoseL3);
+    NamedCommands.registerCommand("Lift to L4", c_PoseL4);
 
     // add autos and post chooser to smart dashboard
     autoChooser.addOption("Auto 1", AutoBuilder.buildAuto("Auto 1"));
@@ -116,7 +129,7 @@ public class RobotContainer {
                 headingtransformed),
             m_robotDrive));
 
-    //m_ElevatorLift.setDefaultCommand(c_PoseHome); //default command so elevator retracts when no command is scheduled
+    m_ElevatorLift.setDefaultCommand(c_PoseHome); //default command so elevator retracts when no command is scheduled
   }
 
   private void configureButtonBindings() {
@@ -155,16 +168,20 @@ public class RobotContainer {
     m_buttons.button(10).whileTrue(runEnd(() -> c_ElevatorManual.tiltvolts(-3), () -> c_ElevatorManual.tiltvolts(0))); // manip down
 
     // manipulator in and out
-    m_buttons.button(11).whileTrue(c_ManipIntake);
-    m_buttons.button(12).whileTrue(c_ManipOuttake);
+    m_buttons.button(12).onTrue(c_ManipIntake);
+    m_buttons.button(11).onTrue(c_ManipOuttake);
 
     // elevator CL button bindings
-    //m_buttons.button(7).onTrue(null); // L4
-    //m_buttons.button(8).onTrue(null); // L3
-    //m_buttons.button(9).onTrue(null); // L2
+    m_buttons.button(7).and(() -> !c_ElevatorManual.isScheduled()).onTrue(c_PoseL4); // L4
+    m_buttons.button(8).and(() -> !c_ElevatorManual.isScheduled()).onTrue(c_PoseL3); // L3
+    m_buttons.button(9).and(() -> !c_ElevatorManual.isScheduled()).onTrue(c_PoseL2); // L2
     m_buttons.button(10).and(() -> !c_ElevatorManual.isScheduled()).onTrue(c_PoseL1); // L1
     m_buttons.button(6).and(() -> !c_ElevatorManual.isScheduled()).onTrue(c_PoseHome); // home
 
+  }
+
+  public Command cancelCommand() {
+    return runOnce(() -> m_ElevatorLift.getCurrentCommand().cancel());
   }
 
   public Command selectedAutonomous() {
@@ -216,6 +233,7 @@ public class RobotContainer {
     // manipulator position
     SmartDashboard.putNumber("manipulator position", m_ManipulatorWrist.getAngle());
     SmartDashboard.putBoolean("manipulator at setpoint", m_ManipulatorWrist.atSetpoint());
+    SmartDashboard.putBoolean("elevator at setpoint", m_ElevatorLift.atSetpoint());
 
     // current commands for subsytems
     SmartDashboard.putData(m_ElevatorTilt.getCurrentCommand());

@@ -21,7 +21,8 @@ public class poseHome extends Command {
   }
 
   @Override
-  public void initialize() {}
+  public void initialize() {
+  }
 
   @Override
   public void execute() {
@@ -29,7 +30,7 @@ public class poseHome extends Command {
     if (m_ManipulatorWrist.atSetpoint()) {
       m_ElevatorLift.setHeight(ElevatorCalibration.elev_homeheight);
     } else {
-      m_ElevatorLift.setHeight(m_ElevatorLift.getEncoderPositions()[2]);
+      m_ElevatorLift.lift(0);
     }
   }
 

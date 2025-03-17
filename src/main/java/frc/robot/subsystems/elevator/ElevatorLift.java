@@ -8,8 +8,6 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 
-//import static edu.wpi.first.wpilibj2.command.Commands.*;
-
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
@@ -20,7 +18,6 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.utils.Configs.ElevatorConfigs;
 import frc.robot.utils.Constants.ElevatorLiftConstants;
 
@@ -210,7 +207,8 @@ public class ElevatorLift extends SubsystemBase {
    * @return The debounced bool.
    */
   public boolean atSetpoint() {
-    return new Trigger(() -> pid_height.atSetpoint()).debounce(1).getAsBoolean();
+    //return new Trigger(() -> pid_height.atSetpoint()).debounce(1).getAsBoolean();
+    return pid_height.atSetpoint();
   }
 
   /** Returns the drive speed multipler that is calculated by elevator. */
@@ -226,8 +224,8 @@ public class ElevatorLift extends SubsystemBase {
     return runOnce(() -> enc_elevleft.setPosition(0)).andThen(runOnce(() -> enc_elevright.setPosition(0)));
   }
 
-  public Command resetPIDF() {
-    return runOnce(() -> pid_height.reset(0));
+  public Command resetPIDF(double position) {
+    return runOnce(() -> pid_height.reset(position));
   }
 
   @Override

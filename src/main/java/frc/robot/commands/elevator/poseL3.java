@@ -9,12 +9,12 @@ import frc.robot.subsystems.elevator.ElevatorLift;
 import frc.robot.subsystems.elevator.ManipulatorWrist;
 import frc.robot.utils.Constants.ElevatorCalibration;
 
-public class poseL1 extends Command {
+public class poseL3 extends Command {
   
   private final ElevatorLift m_ElevatorLift;
   private final ManipulatorWrist m_ManipulatorWrist;
 
-  public poseL1(ElevatorLift elevator, ManipulatorWrist manipulator) {
+  public poseL3(ElevatorLift elevator, ManipulatorWrist manipulator) {
     m_ElevatorLift = elevator;
     m_ManipulatorWrist = manipulator;
     addRequirements(m_ElevatorLift, m_ManipulatorWrist);
@@ -22,12 +22,13 @@ public class poseL1 extends Command {
 
   @Override
   public void initialize() {
+    m_ElevatorLift.resetPIDF(m_ElevatorLift.getEncoderPositions()[2]);
   }
 
   @Override
   public void execute() {
-    m_ElevatorLift.setHeight(ElevatorCalibration.elev_L1height);
-    m_ManipulatorWrist.setAngle(ElevatorCalibration.wrist_L1angle);
+    m_ElevatorLift.setHeight(ElevatorCalibration.elev_L3height);
+    m_ManipulatorWrist.setAngle(ElevatorCalibration.wrist_L3angle);
   }
 
   @Override

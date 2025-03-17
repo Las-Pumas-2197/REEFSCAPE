@@ -4,8 +4,7 @@
 
 package frc.robot.commands.elevator;
 
-import static edu.wpi.first.wpilibj2.command.Commands.*;
-
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.elevator.ManipulatorSpike;
 
@@ -13,25 +12,39 @@ public class manipIntake extends Command {
 
   private final ManipulatorSpike m_ManipulatorSpike;
 
+  private final Timer onTimer;
+
   private boolean finished;
 
   public manipIntake(ManipulatorSpike manipulatorspike) {
     m_ManipulatorSpike = manipulatorspike;
     addRequirements(m_ManipulatorSpike);
+    onTimer = new Timer();
+
   }
 
   @Override
-  public void initialize() {}
+  public void initialize() {
+    finished = false;
+    onTimer.reset();
+    onTimer.start();
+    
+  }
 
   @Override
   public void execute() {
-    runEnd(() -> m_ManipulatorSpike.shoot(12), () -> m_ManipulatorSpike.shoot(0))
-    .withTimeout(1)
-    .finallyDo(() -> finished = true);
+    m_ManipulatorSpike.shoot(12);
+
+    if (onTimer.get() > 0.5) {
+      finished = true;
+    }
   }
 
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+    m_ManipulatorSpike.shoot(0);
+    onTimer.stop();
+  }
 
   @Override
   public boolean isFinished() {
