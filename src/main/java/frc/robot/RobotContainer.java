@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.DataLogManager;
 import frc.robot.commands.elevator.manipIntake;
 import frc.robot.commands.elevator.manipOuttake;
 import frc.robot.commands.elevator.elevatorLock;
@@ -70,6 +71,9 @@ public class RobotContainer {
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
+
+    //start datalog
+    //DataLogManager.start();
 
     // run autobuilder
     m_robotDrive.runAutoBuilder();
