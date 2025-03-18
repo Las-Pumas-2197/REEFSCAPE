@@ -24,6 +24,10 @@ public class elevatorOverride extends Command {
     m_ElevatorLift = elevatorlift;
     m_ManipulatorWrist = manipulatorwrist;
     addRequirements(m_ElevatorLift, m_ManipulatorWrist);
+
+    //set volts to zero on init in case values persist across calls
+    liftvolts = 0;
+    tiltvolts = 0;
   }
 
   @Override

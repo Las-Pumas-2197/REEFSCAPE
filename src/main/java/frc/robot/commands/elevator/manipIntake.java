@@ -25,8 +25,9 @@ public class manipIntake extends Command {
     m_ManipulatorSpike = manipulatorspike;
     addRequirements(m_ManipulatorSpike);
 
-    // timer
+    // declare timer and reset to cover persistence across calls
     onTimer = new Timer();
+    onTimer.reset();
 
     // set finished bool to false in case it persists across calls
     finished = false;
@@ -37,7 +38,6 @@ public class manipIntake extends Command {
   public void initialize() {
 
     // reset timer and start
-    onTimer.reset();
     onTimer.start();
 
     // set volts to motor

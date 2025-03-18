@@ -22,8 +22,9 @@ public class elevatorLock extends Command {
     m_ElevatortTilt = elevatortilt;
     addRequirements(m_ElevatortTilt);
 
-    //timer
+    //declare and reset timer
     onTimer = new Timer();
+    onTimer.reset();
 
     //finished booean, ends command when true
     finished = false;
@@ -32,8 +33,7 @@ public class elevatorLock extends Command {
   @Override
   public void initialize() {
 
-    //reset and start timer due to persistence of instance across calls
-    onTimer.reset();
+    //start timer
     onTimer.start();
     
     //set volts to 6

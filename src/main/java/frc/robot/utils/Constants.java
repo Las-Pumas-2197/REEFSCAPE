@@ -156,17 +156,20 @@ public final class Constants {
     public static final double elev_L2height = 0.85;
     public static final double elev_L3height = 1.2;
     public static final double elev_L4height = 1.84;
-    public static final double elev_algae1height = 0;
-    public static final double elev_algae2height = 0;
+    public static final double elev_dealgae1lowheight = 0;
+    public static final double elev_dealgae1highheight = 0;
+    public static final double elev_dealgae2lowheight = 0;
+    public static final double elev_dealgae2highheight = 0;
     public static final double elev_homeheight= 0;
     public static final double elev_maxheight = 1.9;
     //reef angle calibration data
-    public static final double wrist_L1angle = -1;
-    public static final double wrist_L2angle = -1.9;
-    public static final double wrist_L3angle = -1.9;
-    public static final double wrist_L4angle = -1.75;
-    public static final double wrist_algae1angle = 0;
-    public static final double wrist_algae2angle = 0;
+    public static final double wrist_startangle = 1;
+    public static final double wrist_L1angle = 0;
+    public static final double wrist_L2angle = -0.9;
+    public static final double wrist_L3angle = -0.9;
+    public static final double wrist_L4angle = -0.75;
+    public static final double wrist_dealgae1angle = 0;
+    public static final double wrist_dealgae2angle = 0;
     public static final double wrist_homeangle = 0;
   }
 
