@@ -61,8 +61,8 @@ public class ManipulatorWrist extends SubsystemBase {
    * 
    * @param volts Voltage to apply to the motor.
    */
-  public Command tilt(double volts) {
-    return runEnd(() -> m_wrist.setVoltage(volts), () -> m_wrist.setVoltage(0));
+  public void tilt(double volts) {
+    m_wrist.setVoltage(ff_wrist.calculate(enc_wrist.getPosition(), volts));
   }
 
   /**

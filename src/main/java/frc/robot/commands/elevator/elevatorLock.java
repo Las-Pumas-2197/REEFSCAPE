@@ -4,8 +4,7 @@
 
 package frc.robot.commands.elevator;
 
-import static edu.wpi.first.wpilibj2.command.Commands.*;
-
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.elevator.ElevatorTilt;
 
@@ -15,22 +14,47 @@ public class elevatorLock extends Command {
 
   private boolean finished;
 
+  private final Timer onTimer;
+
   public elevatorLock(ElevatorTilt elevatortilt) {
 
-    // pass subystem to class level
+    //injected subsystem and add requirements
     m_ElevatortTilt = elevatortilt;
     addRequirements(m_ElevatortTilt);
+
+    //timer
+    onTimer = new Timer();
+
+    //finished booean, ends command when true
+    finished = false;
+  }
+
+  @Override
+  public void initialize() {
+
+    //reset and start timer due to persistence of instance across calls
+    onTimer.reset();
+    onTimer.start();
+    
+    //set volts to 6
+    m_ElevatortTilt.tilt(6);
   }
 
   @Override
   public void execute() {
-    run(() -> m_ElevatortTilt.tilt(6))
-    .withTimeout(1)
-    .finallyDo(() -> finished = true);
+
+    //wait until timer elapsed, then end command
+    if (onTimer.get() > 1) {
+      finished = true;
+    }
   }
 
   @Override
   public void end(boolean interrupted) {
+
+    //stop timer and stop motor when ending
+    onTimer.stop();
+    m_ElevatortTilt.tilt(0);
   }
 
   @Override

@@ -10,30 +10,43 @@ import frc.robot.subsystems.elevator.ManipulatorSpike;
 
 public class manipOuttake extends Command {
 
+  //subsystem
   private final ManipulatorSpike m_ManipulatorSpike;
 
+  //timer to check time in command
   private final Timer onTimer;
 
-  private boolean finished;
+  //bool used to end command as needed
+  private boolean finished; 
 
   public manipOuttake(ManipulatorSpike manipulatorspike) {
+
+    //injected subsystem and add requirements
     m_ManipulatorSpike = manipulatorspike;
     addRequirements(m_ManipulatorSpike);
+
+    //timer to check time in command
     onTimer = new Timer();
 
+    //change to finished to false in case it persists across calls
+    finished = false;
   }
 
   @Override
   public void initialize() {
-    finished = false;
+
+    //reset and start timer
     onTimer.reset();
     onTimer.start();
+
+    //start motor
+    m_ManipulatorSpike.shoot(-12);
   }
 
   @Override
   public void execute() {
-    m_ManipulatorSpike.shoot(-12);
 
+    //check if time is greater than setpoint, end if true
     if (onTimer.get() > 0.5) {
       finished = true;
     }
@@ -41,6 +54,8 @@ public class manipOuttake extends Command {
 
   @Override
   public void end(boolean interrupted) {
+
+    //stop motor and timer
     m_ManipulatorSpike.shoot(0);
     onTimer.stop();
   }

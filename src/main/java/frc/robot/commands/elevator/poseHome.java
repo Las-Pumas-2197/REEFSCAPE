@@ -5,41 +5,33 @@
 package frc.robot.commands.elevator;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.elevator.ElevatorLift;
-import frc.robot.subsystems.elevator.ManipulatorWrist;
 import frc.robot.utils.Constants.ElevatorCalibration;
 
 public class poseHome extends Command {
-  
-  private final ElevatorLift m_ElevatorLift;
-  private final ManipulatorWrist m_ManipulatorWrist;
 
-  public poseHome(ElevatorLift elevatorlift, ManipulatorWrist manipulatorwrist) {
-    m_ElevatorLift = elevatorlift;
-    m_ManipulatorWrist = manipulatorwrist;
-    addRequirements(m_ElevatorLift, m_ManipulatorWrist);
+  private final elevatorMain c_ElevatorMain;
+
+  private boolean finished;
+
+  public poseHome(elevatorMain elevatormain) {
+    c_ElevatorMain = elevatormain;
+    finished = false;
   }
 
   @Override
   public void initialize() {
+    c_ElevatorMain.setReference(ElevatorCalibration.elev_homeheight, ElevatorCalibration.wrist_homeangle);
+    finished = true;
   }
 
   @Override
-  public void execute() {
-    m_ManipulatorWrist.setAngle(ElevatorCalibration.wrist_homeangle);
-    if (m_ManipulatorWrist.atSetpoint()) {
-      m_ElevatorLift.setHeight(ElevatorCalibration.elev_homeheight);
-    } else {
-      m_ElevatorLift.lift(0);
-    }
-  }
+  public void execute() {}
 
   @Override
-  public void end(boolean interrupted) {
-  }
+  public void end(boolean interrupted) {}
 
   @Override
   public boolean isFinished() {
-    return false;
+    return finished;
   }
 }

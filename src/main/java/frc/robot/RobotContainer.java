@@ -22,9 +22,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DataLogManager;
 import frc.robot.commands.elevator.manipIntake;
-import frc.robot.commands.elevator.manipOuttake;
 import frc.robot.commands.elevator.elevatorLock;
-import frc.robot.commands.elevator.elevatorManual;
+import frc.robot.commands.elevator.elevatorMain;
+import frc.robot.commands.elevator.elevatorOverride;
+import frc.robot.commands.elevator.manipOuttake;
 import frc.robot.commands.elevator.poseHome;
 import frc.robot.commands.elevator.poseL1;
 import frc.robot.commands.elevator.poseL2;
@@ -52,15 +53,15 @@ public class RobotContainer {
 
   // commands and subsystems to require
   private final elevatorLock c_ElevatorLock = new elevatorLock(m_ElevatorTilt);
-  private final elevatorManual c_ElevatorManual = new elevatorManual(m_ElevatorLift, m_ManipulatorWrist);
+  private final elevatorMain c_ElevatorMain = new elevatorMain(m_ElevatorLift, m_ManipulatorWrist);
+  private final elevatorOverride c_ElevatorOverride = new elevatorOverride(m_ElevatorLift, m_ManipulatorWrist);
   private final manipIntake c_ManipIntake = new manipIntake(m_ManipulatorSpike);
   private final manipOuttake c_ManipOuttake = new manipOuttake(m_ManipulatorSpike);
-  private final poseHome c_PoseHome = new poseHome(m_ElevatorLift, m_ManipulatorWrist);
-  private final poseL1 c_PoseL1 = new poseL1(m_ElevatorLift, m_ManipulatorWrist);
-  private final poseL2 c_PoseL2 = new poseL2(m_ElevatorLift, m_ManipulatorWrist);
-  private final poseL3 c_PoseL3 = new poseL3(m_ElevatorLift, m_ManipulatorWrist);
-  private final poseL4 c_PoseL4 = new poseL4(m_ElevatorLift, m_ManipulatorWrist);
-
+  private final poseHome c_PoseHome = new poseHome(c_ElevatorMain);
+  private final poseL1 c_PoseL1 = new poseL1(c_ElevatorMain);
+  private final poseL2 c_PoseL2 = new poseL2(c_ElevatorMain);
+  private final poseL3 c_PoseL3 = new poseL3(c_ElevatorMain);
+  private final poseL4 c_PoseL4 = new poseL4(c_ElevatorMain);
 
   // The driver's controller
   private final CommandXboxController m_driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
@@ -129,7 +130,7 @@ public class RobotContainer {
                 headingtransformed),
             m_robotDrive));
 
-    m_ElevatorLift.setDefaultCommand(c_PoseHome); //default command so elevator retracts when no command is scheduled
+    m_ElevatorLift.setDefaultCommand(c_ElevatorMain); //default command so elevator retracts when no command is scheduled
   }
 
   private void configureButtonBindings() {
@@ -161,22 +162,22 @@ public class RobotContainer {
     // m_operatorController.x().onTrue(m_ManipulatorWrist.resetEncoder().andThen(m_ElevatorLift.resetEncoderPositions()));
 
     // elevator OL button bindings
-    m_buttons.button(5).whileTrue(c_ElevatorManual); // run command when override is enabled, should override all other commands
-    m_buttons.button(7).whileTrue(runEnd(() -> c_ElevatorManual.liftvolts(6), () -> c_ElevatorManual.liftvolts(0))); // up
-    m_buttons.button(8).whileTrue(runEnd(() -> c_ElevatorManual.liftvolts(-6), () -> c_ElevatorManual.liftvolts(0))); // down
-    m_buttons.button(9).whileTrue(runEnd(() -> c_ElevatorManual.tiltvolts(3), () -> c_ElevatorManual.tiltvolts(0))); // manip up
-    m_buttons.button(10).whileTrue(runEnd(() -> c_ElevatorManual.tiltvolts(-3), () -> c_ElevatorManual.tiltvolts(0))); // manip down
+    m_buttons.button(5).whileTrue(c_ElevatorOverride); // run command when override is enabled, should override main command
+    m_buttons.button(7).whileTrue(runEnd(() -> c_ElevatorOverride.liftVolts(6), () -> c_ElevatorOverride.liftVolts(0))); // up
+    m_buttons.button(8).whileTrue(runEnd(() -> c_ElevatorOverride.liftVolts(-6), () -> c_ElevatorOverride.liftVolts(0))); // down
+    m_buttons.button(9).whileTrue(runEnd(() -> c_ElevatorOverride.tiltVolts(3), () -> c_ElevatorOverride.tiltVolts(0))); // manip up
+    m_buttons.button(10).whileTrue(runEnd(() -> c_ElevatorOverride.tiltVolts(-3), () -> c_ElevatorOverride.tiltVolts(0))); // manip down
 
     // manipulator in and out
     m_buttons.button(12).onTrue(c_ManipIntake);
     m_buttons.button(11).onTrue(c_ManipOuttake);
 
     // elevator CL button bindings
-    m_buttons.button(7).and(() -> !c_ElevatorManual.isScheduled()).onTrue(c_PoseL4); // L4
-    m_buttons.button(8).and(() -> !c_ElevatorManual.isScheduled()).onTrue(c_PoseL3); // L3
-    m_buttons.button(9).and(() -> !c_ElevatorManual.isScheduled()).onTrue(c_PoseL2); // L2
-    m_buttons.button(10).and(() -> !c_ElevatorManual.isScheduled()).onTrue(c_PoseL1); // L1
-    m_buttons.button(6).and(() -> !c_ElevatorManual.isScheduled()).onTrue(c_PoseHome); // home
+    m_buttons.button(7).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL4); // L4
+    m_buttons.button(8).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL3); // L3
+    m_buttons.button(9).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL2); // L2
+    m_buttons.button(10).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL1); // L1
+    m_buttons.button(6).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseHome); // home
 
   }
 
@@ -242,7 +243,7 @@ public class RobotContainer {
     SmartDashboard.putData(m_ManipulatorSpike.getCurrentCommand());
 
     SmartDashboard.putBoolean("elevatorLock scheduled", c_ElevatorLock.isScheduled());
-    SmartDashboard.putBoolean("elevatorManual scheduled", c_ElevatorManual.isScheduled());
+    SmartDashboard.putBoolean("elevatorManual scheduled", c_ElevatorOverride.isScheduled());
     SmartDashboard.putBoolean("manipintake scheduled", c_ManipIntake.isScheduled());
     SmartDashboard.putBoolean("manipouttake scheduled", c_ManipOuttake.isScheduled());
     SmartDashboard.putBoolean("poseHome scheduled", c_PoseHome.isScheduled());
