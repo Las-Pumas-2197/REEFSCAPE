@@ -140,7 +140,7 @@ public final class Constants {
     public static final double wrist_maxrational = 0;
     //PIDF settings, needs characterized
     public static final double wrist_maxvel = 5.94389; //rads
-    public static final double wrist_maxaccel = 2*Math.PI; //rads/s, smol
+    public static final double wrist_maxaccel = 3*Math.PI; //rads/s, smol
     public static final double wrist_FFkS = 0.05;
     public static final double wrist_FFkV = 12 / wrist_maxvel;
     public static final double wrist_FFkG = 0.1;
@@ -153,24 +153,24 @@ public final class Constants {
   public static final class ElevatorCalibration {
     //reef height calibration data
     public static final double elev_L1height = 0.3;
-    public static final double elev_L2height = 0.85;
+    public static final double elev_L2height = 0.8;
     public static final double elev_L3height = 1.2;
     public static final double elev_L4height = 1.84;
-    public static final double elev_dealgae1lowheight = 0;
-    public static final double elev_dealgae1highheight = 0;
-    public static final double elev_dealgae2lowheight = 0;
-    public static final double elev_dealgae2highheight = 0;
+    public static final double elev_dealgae1lowheight = 0.3;
+    public static final double elev_dealgae1highheight = 0.6;
+    public static final double elev_dealgae2lowheight = 0.7;
+    public static final double elev_dealgae2highheight = 1.1;
     public static final double elev_homeheight= 0;
     public static final double elev_maxheight = 1.9;
     //reef angle calibration data
     public static final double wrist_startangle = 1;
     public static final double wrist_L1angle = 0;
-    public static final double wrist_L2angle = -0.9;
-    public static final double wrist_L3angle = -0.9;
-    public static final double wrist_L4angle = -0.75;
+    public static final double wrist_L2angle = -0.7;
+    public static final double wrist_L3angle = -0.7;
+    public static final double wrist_L4angle = -0.60;
     public static final double wrist_dealgae1angle = 0;
     public static final double wrist_dealgae2angle = 0;
-    public static final double wrist_homeangle = 0;
+    public static final double wrist_homeangle = 1.1;
   }
 
   //these must be measured and adjusted accordingly, angles for heading control

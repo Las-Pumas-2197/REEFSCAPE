@@ -27,20 +27,23 @@ public class manipOuttake extends Command {
 
     //timer to check time in command and reset to cover persistent calls
     onTimer = new Timer();
-    onTimer.reset();
 
-    //change to finished to false in case it persists across calls
-    finished = false;
+
+
   }
 
   @Override
   public void initialize() {
 
+    //change to finished to false in case it persists across calls
+    finished = false;
+
     //start timer
+    onTimer.reset();
     onTimer.start();
 
     //start motor
-    m_ManipulatorSpike.shoot(-12);
+    m_ManipulatorSpike.shoot(-6);
   }
 
   @Override

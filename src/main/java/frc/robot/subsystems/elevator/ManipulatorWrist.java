@@ -13,6 +13,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.utils.Configs;
 import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.ElevatorCalibration;
@@ -37,6 +38,12 @@ public class ManipulatorWrist extends SubsystemBase {
   private double var_pidvolts;
   private double var_ffvolts;
 
+  // encoder position
+  private double var_position;
+
+  // at setpoint
+  private final Trigger atSetpoint;
+
   /** Creates a new manipulator. */
   public ManipulatorWrist() {
 
@@ -56,7 +63,7 @@ public class ManipulatorWrist extends SubsystemBase {
     ff_wrist = new ArmFeedforward(ManipulatorConstants.wrist_FFkS, ManipulatorConstants.wrist_FFkG,
         ManipulatorConstants.wrist_FFkV);
 
-    enc_wrist.setPosition(ElevatorCalibration.wrist_startangle);
+    atSetpoint = new Trigger(() -> pid_wrist.atSetpoint()).debounce(0.5);
   }
 
   /**
@@ -65,7 +72,7 @@ public class ManipulatorWrist extends SubsystemBase {
    * @param volts Voltage to apply to the motor.
    */
   public void tilt(double volts) {
-    m_wrist.setVoltage(ff_wrist.calculate(enc_wrist.getPosition(), volts));
+    m_wrist.setVoltage(ff_wrist.calculate(var_position, volts));
   }
 
   /**
@@ -75,14 +82,14 @@ public class ManipulatorWrist extends SubsystemBase {
    */
   public void setAngle(double angle) {
     pid_wrist.setGoal(angle);
-    var_pidvolts = pid_wrist.calculate(enc_wrist.getPosition()) / ManipulatorConstants.wrist_maxvel * 12;
-    var_ffvolts = ff_wrist.calculate(enc_wrist.getPosition(), pid_wrist.getSetpoint().velocity);
+    var_pidvolts = pid_wrist.calculate(var_position) / ManipulatorConstants.wrist_maxvel * 12;
+    var_ffvolts = ff_wrist.calculate(var_position, pid_wrist.getSetpoint().velocity);
     m_wrist.setVoltage(var_pidvolts + var_ffvolts);
   }
 
   /** Returns the current position of the manipulator in rads. */
   public double getAngle() {
-    return enc_wrist.getPosition();
+    return var_position;
   }
 
   public Command resetEncoder() {
@@ -97,8 +104,8 @@ public class ManipulatorWrist extends SubsystemBase {
   }
 
   public boolean atSetpoint() {
-    //return new Trigger(() -> pid_wrist.atSetpoint()).debounce(1).getAsBoolean();
-    return pid_wrist.atSetpoint();
+    return atSetpoint.getAsBoolean();
+    //return pid_wrist.atSetpoint();
   }
 
   public Command resetPIDF() {
@@ -107,5 +114,6 @@ public class ManipulatorWrist extends SubsystemBase {
 
   @Override
   public void periodic() {
+    var_position = enc_wrist.getPosition() + ElevatorCalibration.wrist_startangle;
   }
 }

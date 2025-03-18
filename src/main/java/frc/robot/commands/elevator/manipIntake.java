@@ -27,21 +27,24 @@ public class manipIntake extends Command {
 
     // declare timer and reset to cover persistence across calls
     onTimer = new Timer();
-    onTimer.reset();
 
-    // set finished bool to false in case it persists across calls
-    finished = false;
+
+
 
   }
 
   @Override
   public void initialize() {
+    
+    // set finished bool to false in case it persists across calls
+    finished = false;
 
     // reset timer and start
+    onTimer.reset();
     onTimer.start();
 
     // set volts to motor
-    m_ManipulatorSpike.shoot(12);
+    m_ManipulatorSpike.shoot(6);
   }
 
   @Override

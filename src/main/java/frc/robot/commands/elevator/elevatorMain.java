@@ -7,6 +7,7 @@ package frc.robot.commands.elevator;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.elevator.ElevatorLift;
 import frc.robot.subsystems.elevator.ManipulatorWrist;
+import frc.robot.utils.Constants.ElevatorCalibration;
 
 public class elevatorMain extends Command {
 
@@ -49,12 +50,12 @@ public class elevatorMain extends Command {
     // if not within setpoint, use last written setpoint until
     // manipulator is at setpoint
     // disabled by toggling checkAngle boolean on and off
-    if (!m_ManipulatorWrist.atSetpoint() && checkAngle) {
-      setpointHeight = lastSetpointHeight;
-    } else {
-      setpointHeight = currentSetpointHeight;
-      lastSetpointHeight = setpointHeight;
-    }
+    //if (!m_ManipulatorWrist.atSetpoint() && checkAngle) {
+    //  setpointHeight = lastSetpointHeight;
+    //} else {
+    //  setpointHeight = currentSetpointHeight;
+    //  lastSetpointHeight = setpointHeight;
+    //}
   }
 
   @Override
@@ -72,7 +73,7 @@ public class elevatorMain extends Command {
   // output will "jump" and induce oscillation whenever commands for pose are
   // called
   public void setReference(double height, double angle, boolean angle_checking) {
-    currentSetpointHeight = height;
+    setpointHeight = height;
     setpointAngle = angle;
     checkAngle = angle_checking;
   }

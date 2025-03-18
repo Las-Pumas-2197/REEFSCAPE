@@ -46,6 +46,7 @@ public class RobotContainer {
     // controllers
     private final CommandXboxController m_driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
     private final CommandJoystick m_buttons = new CommandJoystick(OIConstants.kOperatorControllerPort);
+    private final CommandXboxController m_operatorCOntroller = new CommandXboxController(2);
     
     // The robot's subsystems
     private final DriveSubsystem m_robotDrive = new DriveSubsystem();
@@ -78,6 +79,7 @@ public class RobotContainer {
     private final InstantCommand c_PoseDealgae1Low = new InstantCommand(
             () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_dealgae1lowheight,
                     ElevatorCalibration.wrist_L1angle, true));
+
     private final InstantCommand c_PoseDealgae2Low = new InstantCommand(
             () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_dealgae2lowheight,
                     ElevatorCalibration.wrist_L1angle, true));
@@ -102,6 +104,10 @@ public class RobotContainer {
                     () -> m_ElevatorLift.atSetpoint())
                     .andThen(run(() -> m_robotDrive.drive(-0.25, 0, 0, false, false, 0))
                     .withTimeout(0.5)));
+
+        private final SequentialCommandGroup c_BackOutHome = new SequentialCommandGroup(
+                run(() -> m_robotDrive.drive(-0.2, 0, 0, false, false, 0)).withTimeout(0.55),
+                c_PoseHome);
 
     // Auto chooser
     private final SendableChooser<Command> autoChooser = new SendableChooser<>();
@@ -153,7 +159,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("L3 Cmd", c_PoseL3);
         NamedCommands.registerCommand("L4 Cmd", c_PoseL4);
         NamedCommands.registerCommand("Intake Cmd", c_ManipIntake);
-        NamedCommands.registerCommand("Outtake Cmdp", c_ManipOuttake);
+        NamedCommands.registerCommand("Outtake Cmd", c_ManipOuttake);
         
         // add autos and post chooser to smart dashboard
         // setDefaultOption() functions same as addOption, except it sets auto as
@@ -197,6 +203,8 @@ public class RobotContainer {
         //set requirements for de-algae subroutines to allow priority to drive backwards
         c_DeAlgae1.addRequirements(m_robotDrive);
         c_DeAlgae2.addRequirements(m_robotDrive);
+
+        c_BackOutHome.addRequirements(m_robotDrive);
     }
 
     private void configureButtonBindings() {
@@ -247,11 +255,11 @@ public class RobotContainer {
         m_buttons.button(8).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL3);
         m_buttons.button(9).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL2);
         m_buttons.button(10).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL1);
-        m_buttons.button(6).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseHome);
+        m_buttons.button(6).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_BackOutHome);
 
         // elevator de-algae routines, change buttons!!!
-        m_buttons.button(13).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseDealgae1Low).onFalse(c_DeAlgae1);
-        m_buttons.button(14).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseDealgae2Low).onFalse(c_DeAlgae2);
+        m_operatorCOntroller.a().and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseDealgae1Low).onFalse(c_DeAlgae1);
+        m_operatorCOntroller.b().and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseDealgae2Low).onFalse(c_DeAlgae2);
     }
 
     public Command selectedAutonomous() {
