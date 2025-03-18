@@ -64,20 +64,15 @@ public class RobotContainer {
 
     // setpoint commands for setting elevator pose for scoring
     private final InstantCommand c_PoseHome = new InstantCommand(
-            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_homeheight, ElevatorCalibration.wrist_homeangle,
-                    true));
+            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_homeheight, ElevatorCalibration.wrist_homeangle, true));
     private final InstantCommand c_PoseL1 = new InstantCommand(
-            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L1height, ElevatorCalibration.wrist_L1angle,
-                    true));
+            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L1height, ElevatorCalibration.wrist_L1angle, true));
     private final InstantCommand c_PoseL2 = new InstantCommand(
-            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L2height, ElevatorCalibration.wrist_L2angle,
-                    false));
+            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L2height, ElevatorCalibration.wrist_L2angle, false));
     private final InstantCommand c_PoseL3 = new InstantCommand(
-            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L3height, ElevatorCalibration.wrist_L3angle,
-                    false));
+            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L3height, ElevatorCalibration.wrist_L3angle, false));
     private final InstantCommand c_PoseL4 = new InstantCommand(
-            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L4height, ElevatorCalibration.wrist_L4angle,
-                    false));
+            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L4height, ElevatorCalibration.wrist_L4angle, false));
 
     // commands for setting elevator pose for de-algae routines
     private final InstantCommand c_PoseDealgae1Low = new InstantCommand(
@@ -151,14 +146,14 @@ public class RobotContainer {
         OuttakeEvent.onTrue(c_ManipOuttake);
 
         // register commands
-        NamedCommands.registerCommand("Lock", c_ElevatorLock);
-        NamedCommands.registerCommand("Home", c_PoseHome);
-        NamedCommands.registerCommand("L1", c_PoseL1);
-        NamedCommands.registerCommand("L2", c_PoseL2);
-        NamedCommands.registerCommand("L3", c_PoseL3);
-        NamedCommands.registerCommand("L4", c_PoseL4);
-        NamedCommands.registerCommand("Intake", c_ManipIntake);
-        NamedCommands.registerCommand("Outtake", c_ManipOuttake);
+        NamedCommands.registerCommand("Lock Cmd", c_ElevatorLock);
+        NamedCommands.registerCommand("Home Cmd", c_PoseHome);
+        NamedCommands.registerCommand("L1 Cmd", c_PoseL1);
+        NamedCommands.registerCommand("L2 Cmd", c_PoseL2);
+        NamedCommands.registerCommand("L3 Cmd", c_PoseL3);
+        NamedCommands.registerCommand("L4 Cmd", c_PoseL4);
+        NamedCommands.registerCommand("Intake Cmd", c_ManipIntake);
+        NamedCommands.registerCommand("Outtake Cmdp", c_ManipOuttake);
         
         // add autos and post chooser to smart dashboard
         // setDefaultOption() functions same as addOption, except it sets auto as
@@ -230,10 +225,7 @@ public class RobotContainer {
                                         OIConstants.kDriveDeadband))
                                 * 0.04)));
 
-        // reset encoders on elevator if needed
-        // m_operatorController.x().onTrue(m_ManipulatorWrist.resetEncoder().andThen(m_ElevatorLift.resetEncoderPositions()));
-
-        // schedule override command
+        // schedule override command, should default back to automatic when canceled
         m_buttons.button(5).whileTrue(c_ElevatorOverride); // run command when override is enabled, should override main
 
         // buttons for override command

@@ -15,6 +15,7 @@ public class elevatorMain extends Command {
 
   private double setpointAngle;
   private double setpointHeight;
+  private double currentSetpointHeight;
   private double lastSetpointHeight;
 
   //used to toggle angle checking depending on pose desired
@@ -40,16 +41,18 @@ public class elevatorMain extends Command {
 
     // set angle of manipulator first
     m_ManipulatorWrist.setAngle(setpointAngle);
+    m_ElevatorLift.setHeight(setpointHeight);
+    
 
     // check if manipulator is at setpoint
     // if within setpoint, allow elevator to follow current setpoint
-    // if not within setpoint, use last written setpoint as setpoint until
+    // if not within setpoint, use last written setpoint until
     // manipulator is at setpoint
     // disabled by toggling checkAngle boolean on and off
     if (!m_ManipulatorWrist.atSetpoint() && checkAngle) {
-      m_ElevatorLift.setHeight(lastSetpointHeight);
+      setpointHeight = lastSetpointHeight;
     } else {
-      m_ElevatorLift.setHeight(setpointHeight);
+      setpointHeight = currentSetpointHeight;
       lastSetpointHeight = setpointHeight;
     }
   }
@@ -69,7 +72,7 @@ public class elevatorMain extends Command {
   // output will "jump" and induce oscillation whenever commands for pose are
   // called
   public void setReference(double height, double angle, boolean angle_checking) {
-    setpointHeight = height;
+    currentSetpointHeight = height;
     setpointAngle = angle;
     checkAngle = angle_checking;
   }

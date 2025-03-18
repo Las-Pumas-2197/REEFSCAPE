@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utils.Configs;
 import frc.robot.utils.Constants;
+import frc.robot.utils.Constants.ElevatorCalibration;
 import frc.robot.utils.Constants.ManipulatorConstants;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -54,6 +55,8 @@ public class ManipulatorWrist extends SubsystemBase {
         Constants.ManipulatorConstants.wrist_PIDkD, prof_wrist);
     ff_wrist = new ArmFeedforward(ManipulatorConstants.wrist_FFkS, ManipulatorConstants.wrist_FFkG,
         ManipulatorConstants.wrist_FFkV);
+
+    enc_wrist.setPosition(ElevatorCalibration.wrist_startangle);
   }
 
   /**
