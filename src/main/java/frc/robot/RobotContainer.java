@@ -6,9 +6,6 @@ package frc.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 
-import java.net.CacheRequest;
-
-import com.fasterxml.jackson.databind.util.Named;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
@@ -26,18 +23,15 @@ import frc.robot.commands.elevator.elevatorLock;
 import frc.robot.commands.elevator.elevatorMain;
 import frc.robot.commands.elevator.elevatorOverride;
 import frc.robot.commands.elevator.manipOuttake;
-import frc.robot.commands.elevator.poseHome;
-import frc.robot.commands.elevator.poseL1;
-import frc.robot.commands.elevator.poseL2;
-import frc.robot.commands.elevator.poseL3;
-import frc.robot.commands.elevator.poseL4;
 import frc.robot.subsystems.drive.DriveSubsystem;
 import frc.robot.subsystems.elevator.ElevatorLift;
 import frc.robot.subsystems.elevator.ElevatorTilt;
 import frc.robot.subsystems.elevator.ManipulatorSpike;
 import frc.robot.subsystems.elevator.ManipulatorWrist;
+import frc.robot.utils.Constants.ElevatorCalibration;
 import frc.robot.utils.Constants.OIConstants;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -51,23 +45,28 @@ public class RobotContainer {
   private final ManipulatorSpike m_ManipulatorSpike = new ManipulatorSpike();
   private final PowerDistribution pdh = new PowerDistribution(1, ModuleType.kRev);
 
-  // commands and subsystems to require
+  // commands
   private final elevatorLock c_ElevatorLock = new elevatorLock(m_ElevatorTilt);
   private final elevatorMain c_ElevatorMain = new elevatorMain(m_ElevatorLift, m_ManipulatorWrist);
   private final elevatorOverride c_ElevatorOverride = new elevatorOverride(m_ElevatorLift, m_ManipulatorWrist);
   private final manipIntake c_ManipIntake = new manipIntake(m_ManipulatorSpike);
   private final manipOuttake c_ManipOuttake = new manipOuttake(m_ManipulatorSpike);
-  private final poseHome c_PoseHome = new poseHome(c_ElevatorMain);
-  private final poseL1 c_PoseL1 = new poseL1(c_ElevatorMain);
-  private final poseL2 c_PoseL2 = new poseL2(c_ElevatorMain);
-  private final poseL3 c_PoseL3 = new poseL3(c_ElevatorMain);
-  private final poseL4 c_PoseL4 = new poseL4(c_ElevatorMain);
+  private final InstantCommand c_PoseHome = new InstantCommand(
+      () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_homeheight, ElevatorCalibration.wrist_homeangle));
+  private final InstantCommand c_PoseL1 = new InstantCommand(
+      () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L1height, ElevatorCalibration.wrist_L1angle));
+  private final InstantCommand c_PoseL2 = new InstantCommand(
+      () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L2height, ElevatorCalibration.wrist_L2angle));
+  private final InstantCommand c_PoseL3 = new InstantCommand(
+      () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L3height, ElevatorCalibration.wrist_L3angle));
+  private final InstantCommand c_PoseL4 = new InstantCommand(
+      () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L4height, ElevatorCalibration.wrist_L4angle));
 
-  // The driver's controller
+  // controllers
   private final CommandXboxController m_driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
   private final CommandJoystick m_buttons = new CommandJoystick(OIConstants.kOperatorControllerPort);
 
-  // Auto Sendable chooser
+  // Auto chooser
   private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
   // field 2d object for pose estimation visualization in elastic
@@ -83,23 +82,27 @@ public class RobotContainer {
    */
   public RobotContainer() {
 
-    //start datalog
-    //DataLogManager.start();
+    // start datalog
+    DataLogManager.start();
 
-    // run autobuilder
+    // run autobuilder for drivetrain
     m_robotDrive.runAutoBuilder();
 
     // register commands
+    NamedCommands.registerCommand("Lock", c_ElevatorLock);
     NamedCommands.registerCommand("Intake", c_ManipIntake);
     NamedCommands.registerCommand("Outtake", c_ManipOuttake);
     NamedCommands.registerCommand("Home", c_PoseHome);
-    NamedCommands.registerCommand("Lift to L1", c_PoseL1);
-    NamedCommands.registerCommand("Lift to L2", c_PoseL2);
-    NamedCommands.registerCommand("Lift to L3", c_PoseL3);
-    NamedCommands.registerCommand("Lift to L4", c_PoseL4);
+    NamedCommands.registerCommand("L1", c_PoseL1);
+    NamedCommands.registerCommand("L2", c_PoseL2);
+    NamedCommands.registerCommand("L3", c_PoseL3);
+    NamedCommands.registerCommand("L4", c_PoseL4);
 
     // add autos and post chooser to smart dashboard
-    autoChooser.addOption("Auto 1", AutoBuilder.buildAuto("Auto 1"));
+    // setDefaultOption() functions same as addOption, except it sets built auto as
+    // default
+    autoChooser.setDefaultOption("Auto 1", AutoBuilder.buildAuto("Auto 1"));
+    // autoChooser.addOption("Auto 2", AutoBuilder.buildAuto("Auto 2"));
     SmartDashboard.putData("Auto Selector", autoChooser);
 
     // Configure the button bindings
@@ -130,7 +133,9 @@ public class RobotContainer {
                 headingtransformed),
             m_robotDrive));
 
-    m_ElevatorLift.setDefaultCommand(c_ElevatorMain); //default command so elevator retracts when no command is scheduled
+    // set default command for elevator, requires both manipulator and elevator
+    // subsystem
+    m_ElevatorLift.setDefaultCommand(c_ElevatorMain);
   }
 
   private void configureButtonBindings() {
@@ -163,10 +168,14 @@ public class RobotContainer {
 
     // elevator OL button bindings
     m_buttons.button(5).whileTrue(c_ElevatorOverride); // run command when override is enabled, should override main command
-    m_buttons.button(7).whileTrue(runEnd(() -> c_ElevatorOverride.liftVolts(6), () -> c_ElevatorOverride.liftVolts(0))); // up
-    m_buttons.button(8).whileTrue(runEnd(() -> c_ElevatorOverride.liftVolts(-6), () -> c_ElevatorOverride.liftVolts(0))); // down
-    m_buttons.button(9).whileTrue(runEnd(() -> c_ElevatorOverride.tiltVolts(3), () -> c_ElevatorOverride.tiltVolts(0))); // manip up
-    m_buttons.button(10).whileTrue(runEnd(() -> c_ElevatorOverride.tiltVolts(-3), () -> c_ElevatorOverride.tiltVolts(0))); // manip down
+    m_buttons.button(7)
+        .whileTrue(runEnd(() -> c_ElevatorOverride.liftVolts(6), () -> c_ElevatorOverride.liftVolts(0))); // up
+    m_buttons.button(8)
+        .whileTrue(runEnd(() -> c_ElevatorOverride.liftVolts(-6), () -> c_ElevatorOverride.liftVolts(0))); // down
+    m_buttons.button(9)
+        .whileTrue(runEnd(() -> c_ElevatorOverride.tiltVolts(3), () -> c_ElevatorOverride.tiltVolts(0))); // manip up
+    m_buttons.button(10)
+        .whileTrue(runEnd(() -> c_ElevatorOverride.tiltVolts(-3), () -> c_ElevatorOverride.tiltVolts(0))); // manip down
 
     // manipulator in and out
     m_buttons.button(12).onTrue(c_ManipIntake);
@@ -179,10 +188,6 @@ public class RobotContainer {
     m_buttons.button(10).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL1); // L1
     m_buttons.button(6).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseHome); // home
 
-  }
-
-  public Command cancelCommand() {
-    return runOnce(() -> m_ElevatorLift.getCurrentCommand().cancel());
   }
 
   public Command selectedAutonomous() {
