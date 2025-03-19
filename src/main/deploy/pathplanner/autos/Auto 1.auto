@@ -13,7 +13,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Approach 1 V2"
+            "pathName": "Approach 1"
           }
         },
         {
@@ -62,6 +62,24 @@
           "type": "named",
           "data": {
             "name": "Home Cmd"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Coral Station 2"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.0
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Intake Cmd"
           }
         }
       ]

@@ -119,7 +119,7 @@ public final class Constants {
     public static final double elev_maxacl = elev_maxvel * 1; //meters per second ^ 2
     public static final double elev_FFkS = 0.15; //volts
     public static final double elev_FFkV = 12 / elev_maxvel; //volts per m/s
-    public static final double elev_FFkG = 0.1; //volts
+    public static final double elev_FFkG = 0.2; //volts
     public static final double elev_FFkA = 0;
     public static final double elev_PIDkP = 1.2;
     public static final double elev_PIDkD = 0;
@@ -145,7 +145,7 @@ public final class Constants {
     public static final double wrist_maxaccel = 3*Math.PI; //rads/s, smol
     public static final double wrist_FFkS = 0.05;
     public static final double wrist_FFkV = 12 / wrist_maxvel;
-    public static final double wrist_FFkG = 0.1;
+    public static final double wrist_FFkG = 0.2;
     public static final double wrist_FFkA = 0;
     public static final double wrist_PIDkP = 1;
     public static final double wrist_PIDkD = 0;
@@ -161,7 +161,7 @@ public final class Constants {
     public static final double elev_dealgae1lowheight = 0.3;
     public static final double elev_dealgae1highheight = 0.6;
     public static final double elev_dealgae2lowheight = 0.7;
-    public static final double elev_dealgae2highheight = 1.1;
+    public static final double elev_dealgae2highheight = 1;
     public static final double elev_homeheight= 0;
     public static final double elev_maxheight = 1.9;
     //reef angle calibration data

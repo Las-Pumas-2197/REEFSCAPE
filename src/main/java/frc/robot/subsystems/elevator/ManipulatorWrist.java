@@ -66,7 +66,7 @@ public class ManipulatorWrist extends SubsystemBase {
 
     pid_wrist.setTolerance(0.05);
 
-    atSetpoint = new Trigger(() -> pid_wrist.atSetpoint()).debounce(1);
+    atSetpoint = new Trigger(() -> pid_wrist.atSetpoint()).debounce(0.5);
     //atSetpoint = new Trigger(
     //  () -> MathUtil.isNear(pid_wrist.getSetpoint().position, var_position, 0.1)).debounce(1);
   }
@@ -77,7 +77,7 @@ public class ManipulatorWrist extends SubsystemBase {
    * @param volts Voltage to apply to the motor.
    */
   public void tilt(double volts) {
-    m_wrist.setVoltage(ff_wrist.calculate(var_position, volts));
+    m_wrist.setVoltage(ff_wrist.calculate(var_position, volts / 2));
   }
 
   /**

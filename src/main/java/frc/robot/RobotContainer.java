@@ -65,72 +65,59 @@ public class RobotContainer {
 
     // setpoint commands for setting elevator pose for scoring
     private final InstantCommand c_PoseHome = new InstantCommand(
-            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_homeheight, ElevatorCalibration.wrist_homeangle,
-                    true));
+            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_homeheight, ElevatorCalibration.wrist_homeangle));
     private final InstantCommand c_PoseL1 = new InstantCommand(
-            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L1height, ElevatorCalibration.wrist_L1angle,
-                    true));
+            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L1height, ElevatorCalibration.wrist_L1angle));
     private final InstantCommand c_PoseL2 = new InstantCommand(
-            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L2height, ElevatorCalibration.wrist_L2angle,
-                    false));
+            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L2height, ElevatorCalibration.wrist_L2angle));
     private final InstantCommand c_PoseL3 = new InstantCommand(
-            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L3height, ElevatorCalibration.wrist_L3angle,
-                    false));
+            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L3height, ElevatorCalibration.wrist_L3angle));
     private final InstantCommand c_PoseL4 = new InstantCommand(
-            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L4height, ElevatorCalibration.wrist_L4angle,
-                    false));
+            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L4height, ElevatorCalibration.wrist_L4angle));
+    private final SequentialCommandGroup c_BackHome = new SequentialCommandGroup(
+            run(() -> m_robotDrive.drive(-0.25, 0, 0, false, false, 0), m_robotDrive)
+                    .withTimeout(0.5),
+            new InstantCommand(() -> c_ElevatorMain.setReference(ElevatorCalibration.elev_homeheight, ElevatorCalibration.wrist_homeangle)));
+
 
     // commands for setting elevator pose for de-algae routines
     private final InstantCommand c_PoseDealgae1Low = new InstantCommand(
             () -> c_ElevatorMain.setReference(
                     ElevatorCalibration.elev_dealgae1lowheight,
-                    ElevatorCalibration.wrist_L1angle,
-                    true));
+                    ElevatorCalibration.wrist_L1angle));
 
     private final InstantCommand c_PoseDealgae1High = new InstantCommand(
             () -> c_ElevatorMain.setReference(
                     ElevatorCalibration.elev_dealgae1highheight,
-                    ElevatorCalibration.wrist_L1angle,
-                    true));
+                    ElevatorCalibration.wrist_L1angle));
 
     private final InstantCommand c_PoseDealgae2Low = new InstantCommand(
             () -> c_ElevatorMain.setReference(
                     ElevatorCalibration.elev_dealgae2lowheight,
-                    ElevatorCalibration.wrist_L1angle,
-                    true));
+                    ElevatorCalibration.wrist_L1angle));
 
     private final InstantCommand c_PoseDealgae2High = new InstantCommand(
             () -> c_ElevatorMain.setReference(
                     ElevatorCalibration.elev_dealgae2highheight,
-                    ElevatorCalibration.wrist_L1angle,
-                    true));
+                    ElevatorCalibration.wrist_L1angle));
 
     private final SequentialCommandGroup c_DeAlgae1 = new SequentialCommandGroup(
             c_PoseDealgae1High,
-            waitUntil(
-                    () -> m_ElevatorLift.atSetpoint())
-            .andThen(run(
+            waitSeconds(0.5),
+            run(
                     () -> m_robotDrive.drive(-0.25, 0, 0, false, false, 0))
-                    .withTimeout(0.5)));
+                    .withTimeout(0.5),
+            new InstantCommand(
+                    () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_homeheight, ElevatorCalibration.wrist_homeangle)));
 
     private final SequentialCommandGroup c_DeAlgae2 = new SequentialCommandGroup(
             c_PoseDealgae2High,
-            waitUntil(
-                    () -> m_ElevatorLift.atSetpoint())
-            .andThen(run(
-                    () -> m_robotDrive.drive(-0.25, 0, 0, false, false, 0))
-                    .withTimeout(0.5)));
-
-    // misc complex functions
-    private final SequentialCommandGroup c_BackOutHome = new SequentialCommandGroup(
+            waitSeconds(0.5),
             run(
-                    () -> m_robotDrive.drive(-0.2, 0, 0, false, false, 0))
-                    .withTimeout(0.50),
-            c_PoseHome);
-
-    private final SequentialCommandGroup c_OuttakeHome = new SequentialCommandGroup(
-            c_ManipOuttake,
-            c_PoseHome);
+                    () -> m_robotDrive.drive(-0.25, 0, 0, false, false, 0))
+                    .withTimeout(0.5),
+            new InstantCommand(
+                    () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_homeheight, ElevatorCalibration.wrist_homeangle)));
 
     // Auto chooser
     private final SendableChooser<Command> autoChooser = new SendableChooser<>();
@@ -144,8 +131,7 @@ public class RobotContainer {
     private final EventTrigger L4Event = new EventTrigger("L4 Event");
     private final EventTrigger IntakeEvent = new EventTrigger("Intake Event");
     private final EventTrigger OuttakeEvent = new EventTrigger("Outtake Event");
-    private final EventTrigger OuttakeHomeEvent = new EventTrigger("Outtake Home Event");
-
+    
     // field 2d object for pose estimation visualization in elastic
     private final Field2d m_field = new Field2d();
 
@@ -174,7 +160,6 @@ public class RobotContainer {
         L4Event.onTrue(c_PoseL4);
         IntakeEvent.onTrue(c_ManipIntake);
         OuttakeEvent.onTrue(c_ManipOuttake);
-        OuttakeHomeEvent.onTrue(c_OuttakeHome);
 
         // register commands
         NamedCommands.registerCommand("Lock Cmd", c_ElevatorLock);
@@ -185,7 +170,6 @@ public class RobotContainer {
         NamedCommands.registerCommand("L4 Cmd", c_PoseL4);
         NamedCommands.registerCommand("Intake Cmd", c_ManipIntake);
         NamedCommands.registerCommand("Outtake Cmd", c_ManipOuttake);
-        NamedCommands.registerCommand("Outtake Home Cmd", c_OuttakeHome);
 
         // add autos and post chooser to smart dashboard
         // setDefaultOption() functions same as addOption, except it sets auto as
@@ -235,8 +219,6 @@ public class RobotContainer {
         // set requirements for misc commands
         c_DeAlgae1.addRequirements(m_robotDrive);
         c_DeAlgae2.addRequirements(m_robotDrive);
-        c_BackOutHome.addRequirements(m_robotDrive);
-        c_OuttakeHome.addRequirements(m_ManipulatorSpike);
     }
 
     private void configureButtonBindings() {
@@ -266,34 +248,36 @@ public class RobotContainer {
                                 * 0.04)));
 
         // schedule override command, should default back to automatic when canceled
-        m_buttons.button(5).whileTrue(c_ElevatorOverride); // run command when override is enabled, should override main
+        m_buttons.button(2).whileTrue(c_ElevatorOverride); // run command when override is enabled, should override main
+        
+        // elevator de-algae routines, change buttons!!!
+        m_buttons.button(4).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseDealgae1Low)
+                .onFalse(c_DeAlgae1);
+        m_buttons.button(3).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseDealgae2Low)
+                .onFalse(c_DeAlgae2);
 
         // buttons for override command
-        m_buttons.button(7)
+        m_buttons.button(5)
                 .whileTrue(runEnd(() -> c_ElevatorOverride.liftVolts(6), () -> c_ElevatorOverride.liftVolts(0))); // up
-        m_buttons.button(8)
+        m_buttons.button(6)
                 .whileTrue(runEnd(() -> c_ElevatorOverride.liftVolts(-6), () -> c_ElevatorOverride.liftVolts(0))); // down
-        m_buttons.button(9)
+        m_buttons.button(7)
                 .whileTrue(runEnd(() -> c_ElevatorOverride.tiltVolts(3), () -> c_ElevatorOverride.tiltVolts(0))); // up
-        m_buttons.button(10)
+        m_buttons.button(8)
                 .whileTrue(runEnd(() -> c_ElevatorOverride.tiltVolts(-3), () -> c_ElevatorOverride.tiltVolts(0))); // down
 
         // manipulator in and out commands
-        m_buttons.button(12).onTrue(c_ManipIntake);
-        m_buttons.button(11).onTrue(c_ManipOuttake);
+        m_buttons.button(9).onTrue(c_ManipIntake);
+        m_buttons.button(10).onTrue(c_ManipOuttake);
 
         // elevator CL setpoint commands
-        m_buttons.button(7).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL4);
-        m_buttons.button(8).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL3);
-        m_buttons.button(9).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL2);
-        m_buttons.button(10).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL1);
-        m_buttons.button(6).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseHome);
+        m_buttons.button(5).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL4);
+        m_buttons.button(6).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL3);
+        m_buttons.button(7).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL2);
+        m_buttons.button(8).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL1);
+        m_buttons.button(11).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_BackHome);
+        m_buttons.button(12).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseHome);
 
-        // elevator de-algae routines, change buttons!!!
-        m_operatorCOntroller.a().and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseDealgae1Low)
-                .onFalse(c_DeAlgae1);
-        m_operatorCOntroller.b().and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseDealgae2Low)
-                .onFalse(c_DeAlgae2);
     }
 
     public Command selectedAutonomous() {

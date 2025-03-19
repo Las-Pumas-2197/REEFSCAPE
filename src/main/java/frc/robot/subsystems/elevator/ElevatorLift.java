@@ -130,9 +130,8 @@ public class ElevatorLift extends SubsystemBase {
     }
 
     // calculate FF volts and pass to motors
-    double ffvolts = ff_height.calculate(var_voltslimited);
-    m_elevright.setVoltage(ffvolts);
-    m_elevleft.setVoltage(ffvolts);
+    m_elevright.setVoltage(var_voltslimited + ElevatorLiftConstants.elev_FFkG);
+    m_elevleft.setVoltage(var_voltslimited + ElevatorLiftConstants.elev_FFkG);
   }
 
   /**

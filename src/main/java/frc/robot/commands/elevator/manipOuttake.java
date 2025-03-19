@@ -43,7 +43,7 @@ public class manipOuttake extends Command {
     onTimer.start();
 
     //start motor
-    m_ManipulatorSpike.shoot(-6);
+    m_ManipulatorSpike.shoot(-3);
   }
 
   @Override
