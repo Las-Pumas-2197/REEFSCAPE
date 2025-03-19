@@ -7,17 +7,18 @@ package frc.robot.commands.elevator;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.elevator.ElevatorLift;
 import frc.robot.subsystems.elevator.ManipulatorWrist;
-import frc.robot.utils.Constants.ElevatorCalibration;
 
 public class elevatorMain extends Command {
 
+  //injected subsystems
   private final ElevatorLift m_ElevatorLift;
   private final ManipulatorWrist m_ManipulatorWrist;
 
+  //variables used for manipulating setpoint
   private double setpointAngle;
   private double setpointHeight;
-  private double currentSetpointHeight;
-  private double lastSetpointHeight;
+  private double current_setpointHeight;
+  private double last_setpointHeight;
 
   //used to toggle angle checking depending on pose desired
   private boolean checkAngle;
@@ -43,19 +44,14 @@ public class elevatorMain extends Command {
     // set angle of manipulator first
     m_ManipulatorWrist.setAngle(setpointAngle);
     m_ElevatorLift.setHeight(setpointHeight);
-    
 
-    // check if manipulator is at setpoint
-    // if within setpoint, allow elevator to follow current setpoint
-    // if not within setpoint, use last written setpoint until
-    // manipulator is at setpoint
-    // disabled by toggling checkAngle boolean on and off
-    //if (!m_ManipulatorWrist.atSetpoint() && checkAngle) {
-    //  setpointHeight = lastSetpointHeight;
-    //} else {
-    //  setpointHeight = currentSetpointHeight;
-    //  lastSetpointHeight = setpointHeight;
-    //}
+    //check setpoint on manipulator and hold elevator until manipulator is at setpoint if enabled
+    if (checkAngle && !m_ManipulatorWrist.atSetpoint()) {
+      setpointHeight = last_setpointHeight;
+    } else {
+      setpointHeight = current_setpointHeight;
+      last_setpointHeight = current_setpointHeight;
+    }
   }
 
   @Override
@@ -73,7 +69,7 @@ public class elevatorMain extends Command {
   // output will "jump" and induce oscillation whenever commands for pose are
   // called
   public void setReference(double height, double angle, boolean angle_checking) {
-    setpointHeight = height;
+    current_setpointHeight = height;
     setpointAngle = angle;
     checkAngle = angle_checking;
   }

@@ -8,6 +8,7 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.PersistMode;
 
+//import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -63,7 +64,11 @@ public class ManipulatorWrist extends SubsystemBase {
     ff_wrist = new ArmFeedforward(ManipulatorConstants.wrist_FFkS, ManipulatorConstants.wrist_FFkG,
         ManipulatorConstants.wrist_FFkV);
 
-    atSetpoint = new Trigger(() -> pid_wrist.atSetpoint()).debounce(0.5);
+    pid_wrist.setTolerance(0.05);
+
+    atSetpoint = new Trigger(() -> pid_wrist.atSetpoint()).debounce(1);
+    //atSetpoint = new Trigger(
+    //  () -> MathUtil.isNear(pid_wrist.getSetpoint().position, var_position, 0.1)).debounce(1);
   }
 
   /**
@@ -105,7 +110,6 @@ public class ManipulatorWrist extends SubsystemBase {
 
   public boolean atSetpoint() {
     return atSetpoint.getAsBoolean();
-    //return pid_wrist.atSetpoint();
   }
 
   public Command resetPIDF() {

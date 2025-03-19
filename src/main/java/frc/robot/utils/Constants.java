@@ -82,6 +82,7 @@ public final class Constants {
     public static final int kOperatorControllerPort = 1;
     public static final double kDriveDeadband = 0.05;
     public static final double kHeadingIncMult = 0.04;
+    public static final double kDriveAxisExponent = 3;
     
   }
 
@@ -97,7 +98,8 @@ public final class Constants {
 
     // Constraint for the motion profiled robot angle controller
     public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(
-        kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
+        kMaxAngularSpeedRadiansPerSecond, 
+        kMaxAngularSpeedRadiansPerSecondSquared);
   }
 
   public static final class NeoMotorConstants {
@@ -114,7 +116,7 @@ public final class Constants {
     public static final double elev_velfactor = elev_posfactor / 60; //meters per second
     //PIDF settings
     public static final double elev_maxvel = 1.9; //meters per second
-    public static final double elev_maxacl = elev_maxvel * 2; //meters per second ^ 2
+    public static final double elev_maxacl = elev_maxvel * 1; //meters per second ^ 2
     public static final double elev_FFkS = 0.15; //volts
     public static final double elev_FFkV = 12 / elev_maxvel; //volts per m/s
     public static final double elev_FFkG = 0.1; //volts
