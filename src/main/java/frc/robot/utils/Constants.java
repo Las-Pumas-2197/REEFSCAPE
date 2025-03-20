@@ -82,8 +82,7 @@ public final class Constants {
     public static final int kOperatorControllerPort = 1;
     public static final double kDriveDeadband = 0.05;
     public static final double kHeadingIncMult = 0.04;
-    public static final double kDriveAxisExponent = 2;
-    
+    public static final double kDriveAxisExponent = 3;
   }
 
   public static final class AutoConstants {
@@ -91,10 +90,10 @@ public final class Constants {
     public static final double kMaxAccelerationMetersPerSecondSquared = 1;
     public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
     public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
-    public static final double kPTranslationController = 5;
-    public static final double kDTranslationController = 0;
-    public static final double kPRotationController = 5;
-    public static final double kDRotationController = 0;
+    public static final double kPTranslationController = 7;
+    public static final double kDTranslationController = 1;
+    public static final double kPRotationController = 7;
+    public static final double kDRotationController = 1;
 
     // Constraint for the motion profiled robot angle controller
     public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(
@@ -169,7 +168,7 @@ public final class Constants {
     public static final double wrist_L1angle = 0;
     public static final double wrist_L2angle = -0.7;
     public static final double wrist_L3angle = -0.7;
-    public static final double wrist_L4angle = -0.60;
+    public static final double wrist_L4angle = -0.65;
     public static final double wrist_dealgae1angle = 0;
     public static final double wrist_dealgae2angle = 0;
     public static final double wrist_homeangle = 1.1;

@@ -79,9 +79,10 @@ public class RobotContainer {
             () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L4height, ElevatorCalibration.wrist_L4angle));
 
     // sequential command to back up and home
-    private final SequentialCommandGroup c_BackHome = new SequentialCommandGroup(
-            run(() -> m_robotDrive.drive(-0.25, 0, 0, false, false, 0), m_robotDrive)
-                    .withTimeout(0.5),
+    private final SequentialCommandGroup c_OutBackHome = new SequentialCommandGroup(
+            new manipOuttake(m_ManipulatorSpike),
+            run(() -> m_robotDrive.drive(-0.1, 0, 0, false, false, 0), m_robotDrive)
+                    .withTimeout(1),
             new InstantCommand(() -> c_ElevatorMain.setReference(ElevatorCalibration.elev_homeheight, ElevatorCalibration.wrist_homeangle)));
 
 
@@ -105,6 +106,12 @@ public class RobotContainer {
             () -> c_ElevatorMain.setReference(
                     ElevatorCalibration.elev_dealgae2highheight,
                     ElevatorCalibration.wrist_L1angle));
+    
+    private final RunCommand c_bumpleft = new RunCommand(
+            () -> m_robotDrive.drive(0.0, 0.1, 0.0, false, false, 0), m_robotDrive);
+
+    private final RunCommand c_bumpright = new RunCommand(
+            () -> m_robotDrive.drive(0.0, -0.1, 0.0, false, false, 0), m_robotDrive);
 
     //de-algae routines
     private final SequentialCommandGroup c_DeAlgae1 = new SequentialCommandGroup(
@@ -179,8 +186,8 @@ public class RobotContainer {
 
         // add autos and post chooser to smart dashboard
         // setDefaultOption() functions same as addOption, except it sets auto as default
-        autoChooser.setDefaultOption("Auto 1", AutoBuilder.buildAuto("Auto 1"));
-        // autoChooser.addOption("Auto 2", AutoBuilder.buildAuto("Auto 2"));
+        autoChooser.setDefaultOption("1 Coral Right", AutoBuilder.buildAuto("Auto A"));
+        //autoChooser.addOption("2 Coral Right", AutoBuilder.buildAuto("2 Coral Right"));
         SmartDashboard.putData("Auto Selector", autoChooser);
 
         // Configure the button bindings
@@ -252,6 +259,10 @@ public class RobotContainer {
                                         OIConstants.kDriveDeadband))
                                 * 0.04)));
 
+        //bump left and right for positioning
+        m_driverController.povLeft().whileTrue(c_bumpleft);
+        m_driverController.povRight().whileTrue(c_bumpright);
+
         // schedule override command, should default back to automatic when canceled
         m_buttons.button(2).whileTrue(c_ElevatorOverride); // run command when override is enabled, should override main
         
@@ -273,7 +284,7 @@ public class RobotContainer {
 
         // manipulator in and out commands
         m_buttons.button(9).onTrue(c_ManipIntake);
-        m_buttons.button(10).onTrue(c_ManipOuttake);
+        m_buttons.button(11).onTrue(c_ManipOuttake);
 
         // elevator CL setpoint commands
         m_buttons.button(5).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseL4);
@@ -282,11 +293,11 @@ public class RobotContainer {
         m_buttons.button(8).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseL1);
 
         // home routines
-        m_buttons.button(11).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_BackHome);
+        m_buttons.button(10).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_OutBackHome);
         m_buttons.button(12).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseHome);
 
         // homing routine
-        m_buttons.button(11).and(() -> m_buttons.button(12). getAsBoolean()).onTrue(null);
+        //m_buttons.button(11).and(() -> m_buttons.button(12). getAsBoolean()).onTrue(null);
 
     }
 
@@ -307,6 +318,7 @@ public class RobotContainer {
         // Elevator Encoders
         double[] ElevatorEncoders = m_ElevatorLift.getEncoderPositions();
         SmartDashboard.putNumber("Elevator Encoder Avg", ElevatorEncoders[2]);
+        SmartDashboard.putNumber("Manipulator Position", m_ManipulatorWrist.getAngle());
 
         // elevator limit switches
         SmartDashboard.putBoolean("lower limit", m_ElevatorLift.getSwitchStatuses()[0]);
