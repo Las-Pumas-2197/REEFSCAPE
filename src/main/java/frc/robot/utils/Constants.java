@@ -82,7 +82,7 @@ public final class Constants {
     public static final int kOperatorControllerPort = 1;
     public static final double kDriveDeadband = 0.05;
     public static final double kHeadingIncMult = 0.04;
-    public static final double kDriveAxisExponent = 3;
+    public static final double kDriveAxisExponent = 2;
     
   }
 

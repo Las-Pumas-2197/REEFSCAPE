@@ -14,7 +14,6 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.utils.Configs;
 import frc.robot.utils.Constants;
 import frc.robot.utils.Constants.ElevatorCalibration;
@@ -42,9 +41,6 @@ public class ManipulatorWrist extends SubsystemBase {
   // encoder position
   private double var_position;
 
-  // at setpoint
-  private final Trigger atSetpoint;
-
   /** Creates a new manipulator. */
   public ManipulatorWrist() {
 
@@ -63,12 +59,6 @@ public class ManipulatorWrist extends SubsystemBase {
         Constants.ManipulatorConstants.wrist_PIDkD, prof_wrist);
     ff_wrist = new ArmFeedforward(ManipulatorConstants.wrist_FFkS, ManipulatorConstants.wrist_FFkG,
         ManipulatorConstants.wrist_FFkV);
-
-    pid_wrist.setTolerance(0.05);
-
-    atSetpoint = new Trigger(() -> pid_wrist.atSetpoint()).debounce(0.5);
-    //atSetpoint = new Trigger(
-    //  () -> MathUtil.isNear(pid_wrist.getSetpoint().position, var_position, 0.1)).debounce(1);
   }
 
   /**
@@ -104,12 +94,13 @@ public class ManipulatorWrist extends SubsystemBase {
   public double[] getManipulatorData() {
     return new double[] {
         var_pidvolts,
-        var_ffvolts
+        var_ffvolts,
+        enc_wrist.getVelocity()
     };
   }
 
   public boolean atSetpoint() {
-    return atSetpoint.getAsBoolean();
+    return pid_wrist.atSetpoint();
   }
 
   public Command resetPIDF() {

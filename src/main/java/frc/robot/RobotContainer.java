@@ -46,7 +46,6 @@ public class RobotContainer {
     private final CommandXboxController m_driverController = new CommandXboxController(
             OIConstants.kDriverControllerPort);
     private final CommandJoystick m_buttons = new CommandJoystick(OIConstants.kOperatorControllerPort);
-    private final CommandXboxController m_operatorCOntroller = new CommandXboxController(2);
 
     // The robot's subsystems
     private final DriveSubsystem m_robotDrive = new DriveSubsystem();
@@ -66,14 +65,20 @@ public class RobotContainer {
     // setpoint commands for setting elevator pose for scoring
     private final InstantCommand c_PoseHome = new InstantCommand(
             () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_homeheight, ElevatorCalibration.wrist_homeangle));
+
     private final InstantCommand c_PoseL1 = new InstantCommand(
             () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L1height, ElevatorCalibration.wrist_L1angle));
+
     private final InstantCommand c_PoseL2 = new InstantCommand(
             () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L2height, ElevatorCalibration.wrist_L2angle));
+
     private final InstantCommand c_PoseL3 = new InstantCommand(
             () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L3height, ElevatorCalibration.wrist_L3angle));
+
     private final InstantCommand c_PoseL4 = new InstantCommand(
             () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L4height, ElevatorCalibration.wrist_L4angle));
+
+    // sequential command to back up and home
     private final SequentialCommandGroup c_BackHome = new SequentialCommandGroup(
             run(() -> m_robotDrive.drive(-0.25, 0, 0, false, false, 0), m_robotDrive)
                     .withTimeout(0.5),
@@ -101,6 +106,7 @@ public class RobotContainer {
                     ElevatorCalibration.elev_dealgae2highheight,
                     ElevatorCalibration.wrist_L1angle));
 
+    //de-algae routines
     private final SequentialCommandGroup c_DeAlgae1 = new SequentialCommandGroup(
             c_PoseDealgae1High,
             waitSeconds(0.5),
@@ -172,8 +178,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Outtake Cmd", c_ManipOuttake);
 
         // add autos and post chooser to smart dashboard
-        // setDefaultOption() functions same as addOption, except it sets auto as
-        // default
+        // setDefaultOption() functions same as addOption, except it sets auto as default
         autoChooser.setDefaultOption("Auto 1", AutoBuilder.buildAuto("Auto 1"));
         // autoChooser.addOption("Auto 2", AutoBuilder.buildAuto("Auto 2"));
         SmartDashboard.putData("Auto Selector", autoChooser);
@@ -271,12 +276,17 @@ public class RobotContainer {
         m_buttons.button(10).onTrue(c_ManipOuttake);
 
         // elevator CL setpoint commands
-        m_buttons.button(5).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL4);
-        m_buttons.button(6).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL3);
-        m_buttons.button(7).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL2);
-        m_buttons.button(8).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseL1);
-        m_buttons.button(11).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_BackHome);
-        m_buttons.button(12).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseHome);
+        m_buttons.button(5).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseL4);
+        m_buttons.button(6).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseL3);
+        m_buttons.button(7).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseL2);
+        m_buttons.button(8).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseL1);
+
+        // home routines
+        m_buttons.button(11).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_BackHome);
+        m_buttons.button(12).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseHome);
+
+        // homing routine
+        m_buttons.button(11).and(() -> m_buttons.button(12). getAsBoolean()).onTrue(null);
 
     }
 
@@ -287,47 +297,22 @@ public class RobotContainer {
 
     public void telemetry() {
         m_field.setRobotPose(m_robotDrive.getPose());
-        SmartDashboard.putNumber("Xpos", m_robotDrive.getPose().getX());
-        SmartDashboard.putNumber("Ypos", m_robotDrive.getPose().getY());
-        SmartDashboard.putNumber("Heading", m_robotDrive.getPose().getRotation().getRadians());
         SmartDashboard.putNumber("Voltage", pdh.getVoltage());
-        SmartDashboard.putNumber("x axis", m_driverController.getLeftX());
-        SmartDashboard.putNumber("y axis", m_driverController.getLeftY());
-        SmartDashboard.putNumber("z axis", m_driverController.getRightX());
-        SmartDashboard.putBoolean("heading control state", useHeadingCorrection);
 
         // Chassis Speeds
-        SmartDashboard.putNumber("ChassisSpeedX", m_robotDrive.getSpeeds().vxMetersPerSecond);
-        SmartDashboard.putNumber("ChassisSpeedY", m_robotDrive.getSpeeds().vyMetersPerSecond);
-        SmartDashboard.putNumber("Radians Per Second", m_robotDrive.getSpeeds().omegaRadiansPerSecond);
-        SmartDashboard.putNumber("Trigger Heading", headingtransformed);
         SmartDashboard.putNumber("Velocity", Math.sqrt(Math.pow(m_robotDrive.getSpeeds().vxMetersPerSecond, 2)
                 + Math.pow(m_robotDrive.getSpeeds().vyMetersPerSecond, 2)));
         SmartDashboard.putData(m_field);
 
         // Elevator Encoders
         double[] ElevatorEncoders = m_ElevatorLift.getEncoderPositions();
-        SmartDashboard.putNumber("Elevator Encoder Right", ElevatorEncoders[0]);
-        SmartDashboard.putNumber("Elevator Encoder Left", ElevatorEncoders[1]);
         SmartDashboard.putNumber("Elevator Encoder Avg", ElevatorEncoders[2]);
-        SmartDashboard.putNumber("elevator velocity avg", ElevatorEncoders[3]);
 
         // elevator limit switches
         SmartDashboard.putBoolean("lower limit", m_ElevatorLift.getSwitchStatuses()[0]);
         SmartDashboard.putBoolean("upper limit", m_ElevatorLift.getSwitchStatuses()[1]);
 
-        // internal elevator stuff
-        SmartDashboard.putNumber("elevator volts", m_ElevatorLift.getVolts()[0]);
-        SmartDashboard.putNumber("slewed elevator volts", m_ElevatorLift.getVolts()[1]);
-        SmartDashboard.putNumber("elevator pid volts", m_ElevatorLift.getVolts()[2]);
-        SmartDashboard.putNumber("elevator ff volts", m_ElevatorLift.getVolts()[3]);
-
-        // internal manipulator stuff
-        SmartDashboard.putNumber("manipulator pid volts", m_ManipulatorWrist.getManipulatorData()[0]);
-        SmartDashboard.putNumber("manipulator ff volts", m_ManipulatorWrist.getManipulatorData()[1]);
-
-        // manipulator position
-        SmartDashboard.putNumber("manipulator position", m_ManipulatorWrist.getAngle());
+        // manipulator and elevator setpoint
         SmartDashboard.putBoolean("manipulator at setpoint", m_ManipulatorWrist.atSetpoint());
         SmartDashboard.putBoolean("elevator at setpoint", m_ElevatorLift.atSetpoint());
 
@@ -336,12 +321,11 @@ public class RobotContainer {
         SmartDashboard.putData(m_ElevatorLift.getCurrentCommand());
         SmartDashboard.putData(m_ManipulatorWrist.getCurrentCommand());
         SmartDashboard.putData(m_ManipulatorSpike.getCurrentCommand());
-
-        SmartDashboard.putBoolean("elevatorLock scheduled", c_ElevatorLock.isScheduled());
+        
+        // commands scheduled
+        SmartDashboard.putBoolean("elevatorMain scheduled", c_ElevatorMain.isScheduled());
         SmartDashboard.putBoolean("elevatorManual scheduled", c_ElevatorOverride.isScheduled());
         SmartDashboard.putBoolean("manipintake scheduled", c_ManipIntake.isScheduled());
         SmartDashboard.putBoolean("manipouttake scheduled", c_ManipOuttake.isScheduled());
-        SmartDashboard.putBoolean("poseHome scheduled", c_PoseHome.isScheduled());
-        SmartDashboard.putBoolean("poseL1 scheduled", c_PoseL1.isScheduled());
     }
 }
