@@ -24,7 +24,7 @@ import frc.robot.commands.elevator.elevatorLock;
 import frc.robot.commands.elevator.elevatorMain;
 import frc.robot.commands.elevator.elevatorOverride;
 import frc.robot.commands.elevator.manipOuttake;
-
+import frc.robot.subsystems.ancilliary.LLVision;
 import frc.robot.subsystems.drive.DriveSubsystem;
 import frc.robot.subsystems.elevator.ElevatorLift;
 import frc.robot.subsystems.elevator.ElevatorTilt;
@@ -43,8 +43,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 public class RobotContainer {
     // controllers
-    private final CommandXboxController m_driverController = new CommandXboxController(
-            OIConstants.kDriverControllerPort);
+    private final CommandXboxController m_driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
     private final CommandJoystick m_buttons = new CommandJoystick(OIConstants.kOperatorControllerPort);
 
     // The robot's subsystems
@@ -53,6 +52,7 @@ public class RobotContainer {
     private final ElevatorTilt m_ElevatorTilt = new ElevatorTilt();
     private final ManipulatorWrist m_ManipulatorWrist = new ManipulatorWrist();
     private final ManipulatorSpike m_ManipulatorSpike = new ManipulatorSpike();
+    private final LLVision m_VisionManager = new LLVision(m_robotDrive);
     private final PowerDistribution pdh = new PowerDistribution(1, ModuleType.kRev);
 
     // subclassed commands
@@ -150,6 +150,9 @@ public class RobotContainer {
      * The container for the robot. Contains subsystems, OI devices, and commands.
      */
     public RobotContainer() {
+
+        //register subsystem so periodic method is called by scheduler
+        m_VisionManager.register();
 
         // start datalog
         DataLogManager.start();

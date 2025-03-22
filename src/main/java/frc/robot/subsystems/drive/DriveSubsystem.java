@@ -15,7 +15,6 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -28,6 +27,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utils.Constants.AutoConstants;
 import frc.robot.utils.Constants.DriveConstants;
+import frc.robot.utils.Constants.VisionConstants;
 import frc.robot.utils.LimelightHelpers;
 
 public class DriveSubsystem extends SubsystemBase {
@@ -72,9 +72,6 @@ public class DriveSubsystem extends SubsystemBase {
 
     // PID controller for heading
     private final ProfiledPIDController headingController;
-
-    // bool to trigger update vision update rejection
-    private boolean rejectVisionUpdate;
 
     /** Creates a new DriveSubsystem. */
     public DriveSubsystem() {
@@ -137,29 +134,6 @@ public class DriveSubsystem extends SubsystemBase {
                         m_rearLeft.getPosition(),
                         m_rearRight.getPosition()
                 });
-        
-                
-
-        // set to false to allow periodic updates across scheduler cycles
-       // should be set true by conditionals if condition is detected, and reject vision data
-        rejectVisionUpdate = false;
-        
-        // check rotation of robot and apply offset to limelight data
-        // blue alliance origin is currently only one supported in 2025 framework DO NOT USE RED ORIGIN
-        LimelightHelpers.SetRobotOrientation("limelight", m_PoseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
-        LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
-        
-        // reject vision data if there are no tags detected
-        if (mt2.tagCount == 0) {rejectVisionUpdate = true;}
-        
-        // if turn rate is > 1 rotation per second, ignore vision data
-        if (getTurnRate() > 2 * Math.PI) {rejectVisionUpdate = true;}
-
-        // if no conditions trigger vision data rejection, update pose with passed pose and std deviations
-        if (!rejectVisionUpdate) {
-                m_PoseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
-                m_PoseEstimator.addVisionMeasurement(mt2.pose, mt2.timestampSeconds);
-        }
     }
 
     /**
@@ -171,6 +145,11 @@ public class DriveSubsystem extends SubsystemBase {
         return m_PoseEstimator.getEstimatedPosition();
     }
 
+    public void updateVisionMeasurement(LimelightHelpers.PoseEstimate poseEstimate) {
+        m_PoseEstimator.setVisionMeasurementStdDevs(VisionConstants.vis_stddevs);
+        m_PoseEstimator.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
+    }
+
     /**
      * Resets the odometry to the specified pose.
      *
@@ -178,7 +157,6 @@ public class DriveSubsystem extends SubsystemBase {
      */
     public void resetOdometry(Pose2d pose) {
         m_PoseEstimator.resetPosition(
-                // Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ)),
                 Rotation2d.fromRadians(getHeading()),
                 new SwerveModulePosition[] {
                         m_frontLeft.getPosition(),
