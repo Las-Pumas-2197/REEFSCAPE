@@ -4,8 +4,11 @@
 
 package frc.robot.utils;
 
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 
@@ -79,7 +82,8 @@ public final class Constants {
 
   public static final class OIConstants {
     public static final int kDriverControllerPort = 0;
-    public static final int kOperatorControllerPort = 1;
+    public static final int kOperatorButtonsPort = 1;
+    public static final int kDriverButtonsPort = 2;
     public static final double kDriveDeadband = 0.05;
     public static final double kHeadingIncMult = 0.04;
     public static final double kDriveAxisExponent = 3;
@@ -104,7 +108,39 @@ public final class Constants {
   public static final class NeoMotorConstants {
     public static final double kFreeSpeedRpm = 6784;
   }
+  public static final class VisionConstants{
 
+    //string names for lime lights
+    public static final String vis_LL1name = "limelight";
+    
+    //valid tag IDs, set the valid IDs to only ones that are normally visible by the LL based on it's location
+    public static final int[] vis_validIDs = new int[] {
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22 //set according to what tags should be observed
+    };
+
+    //position of LL1 in 3d space in robot, center origin, NWU/CCW+ convention
+    public static final double[] vis_LL1position = new double[] {
+        0, //X forward
+        0, //Y side
+        0, //Z up
+        0, //roll
+        0, //pitch (up/down)
+        0 //yaw (left/right)
+    };
+
+    public static final Vector<N3> vis_stddevs = VecBuilder.fill(0.5,0.5,9999999);
+  }
   public static final class ElevatorLiftConstants {
     //node IDs
     public static final int elev_leftID = 0;

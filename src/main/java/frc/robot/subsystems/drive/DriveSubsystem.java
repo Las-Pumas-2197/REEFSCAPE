@@ -16,17 +16,19 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utils.Constants.AutoConstants;
 import frc.robot.utils.Constants.DriveConstants;
+import frc.robot.utils.Constants.VisionConstants;
+import frc.robot.utils.LimelightHelpers;
 
 public class DriveSubsystem extends SubsystemBase {
   // Create MAXSwerveModules
@@ -54,7 +56,7 @@ public class DriveSubsystem extends SubsystemBase {
   private final Pigeon2 pigeon2 = new Pigeon2(20);
 
   // Odometry class for tracking robot pose
-  SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
+  SwerveDrivePoseEstimator m_PoseEstimator = new SwerveDrivePoseEstimator(
       DriveConstants.kDriveKinematics,
       // Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ)),
       Rotation2d.fromRadians(getHeading()),
@@ -63,7 +65,9 @@ public class DriveSubsystem extends SubsystemBase {
           m_frontRight.getPosition(),
           m_rearLeft.getPosition(),
           m_rearRight.getPosition()
-      });
+      },
+      new Pose2d()
+      );
 
   // PP configuration
   private RobotConfig robotConfig;
@@ -119,16 +123,16 @@ public class DriveSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // Update the odometry in the periodic block
-    m_odometry.update(
-        // Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ)),
-        Rotation2d.fromRadians(getHeading()),
-        new SwerveModulePosition[] {
-            m_frontLeft.getPosition(),
-            m_frontRight.getPosition(),
-            m_rearLeft.getPosition(),
-            m_rearRight.getPosition()
-        });
+    // Update the pose in the periodic block
+        m_PoseEstimator.update(
+          // Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ)),
+          Rotation2d.fromRadians(getHeading()),
+          new SwerveModulePosition[] {
+                  m_frontLeft.getPosition(),
+                  m_frontRight.getPosition(),
+                  m_rearLeft.getPosition(),
+                  m_rearRight.getPosition()
+          });
   }
 
   /**
@@ -137,8 +141,12 @@ public class DriveSubsystem extends SubsystemBase {
    * @return The pose.
    */
   public Pose2d getPose() {
-    return m_odometry.getPoseMeters();
+    return m_PoseEstimator.getEstimatedPosition();
   }
+  public void updateVisionMeasurement(LimelightHelpers.PoseEstimate poseEstimate) {
+        m_PoseEstimator.setVisionMeasurementStdDevs(VisionConstants.vis_stddevs);
+        m_PoseEstimator.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
+    }
 
   /**
    * Resets the odometry to the specified pose.
@@ -146,7 +154,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @param pose The pose to which to set the odometry.
    */
   public void resetOdometry(Pose2d pose) {
-    m_odometry.resetPosition(
+    m_PoseEstimator.resetPosition(
         // Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ)),
         Rotation2d.fromRadians(getHeading()),
         new SwerveModulePosition[] {

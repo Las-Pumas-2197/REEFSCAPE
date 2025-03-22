@@ -12,6 +12,8 @@ import com.pathplanner.lib.events.EventTrigger;
 
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -24,7 +26,7 @@ import frc.robot.commands.elevator.elevatorLock;
 import frc.robot.commands.elevator.elevatorMain;
 import frc.robot.commands.elevator.elevatorOverride;
 import frc.robot.commands.elevator.manipOuttake;
-
+import frc.robot.subsystems.ancilliary.LLVision;
 import frc.robot.subsystems.drive.DriveSubsystem;
 import frc.robot.subsystems.elevator.ElevatorLift;
 import frc.robot.subsystems.elevator.ElevatorTilt;
@@ -45,7 +47,8 @@ public class RobotContainer {
     // controllers
     private final CommandXboxController m_driverController = new CommandXboxController(
             OIConstants.kDriverControllerPort);
-    private final CommandJoystick m_buttons = new CommandJoystick(OIConstants.kOperatorControllerPort);
+    private final CommandJoystick m_operatorbuttons = new CommandJoystick(OIConstants.kOperatorButtonsPort);
+    private final CommandJoystick m_driverbuttons = new CommandJoystick(OIConstants.kDriverButtonsPort);
 
     // The robot's subsystems
     private final DriveSubsystem m_robotDrive = new DriveSubsystem();
@@ -54,6 +57,7 @@ public class RobotContainer {
     private final ManipulatorWrist m_ManipulatorWrist = new ManipulatorWrist();
     private final ManipulatorSpike m_ManipulatorSpike = new ManipulatorSpike();
     private final PowerDistribution pdh = new PowerDistribution(1, ModuleType.kRev);
+    private final LLVision m_LLvision = new LLVision(m_robotDrive);
 
     // subclassed commands
     private final elevatorLock c_ElevatorLock = new elevatorLock(m_ElevatorTilt);
@@ -157,7 +161,7 @@ public class RobotContainer {
      * The container for the robot. Contains subsystems, OI devices, and commands.
      */
     public RobotContainer() {
-
+        m_LLvision.register();
         // start datalog
         DataLogManager.start();
 
@@ -242,7 +246,8 @@ public class RobotContainer {
 
         // zero heading and odometry as needed
         m_driverController.a().onTrue(runOnce(() -> m_robotDrive.zeroHeading()));
-        //m_driverController.x().onTrue(runOnce(() -> m_robotDrive.resetOdometry(new Pose2d())));
+
+        m_driverController.x().onTrue(runOnce(() -> m_robotDrive.resetOdometry(new Pose2d(7.6, 0.47, new Rotation2d(Math.PI)))));
 
         // runs first lambda when depressed, runs second lambda when released
         m_driverController.y().whileTrue(runEnd(() -> fieldOriented = false, () -> fieldOriented = true));
@@ -264,40 +269,47 @@ public class RobotContainer {
         m_driverController.povRight().whileTrue(c_bumpright);
 
         // schedule override command, should default back to automatic when canceled
-        m_buttons.button(2).whileTrue(c_ElevatorOverride); // run command when override is enabled, should override main
+        m_operatorbuttons.button(2).whileTrue(c_ElevatorOverride); // run command when override is enabled, should override main
         
         // elevator de-algae routines, change buttons!!!
-        m_buttons.button(4).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseDealgae1Low)
+        m_operatorbuttons.button(4).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseDealgae1Low)
                 .onFalse(c_DeAlgae1);
-        m_buttons.button(3).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseDealgae2Low)
+        m_operatorbuttons.button(3).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseDealgae2Low)
                 .onFalse(c_DeAlgae2);
 
         // buttons for override command
-        m_buttons.button(5)
+        m_operatorbuttons.button(5)
                 .whileTrue(runEnd(() -> c_ElevatorOverride.liftVolts(6), () -> c_ElevatorOverride.liftVolts(0))); // up
-        m_buttons.button(6)
+        m_operatorbuttons.button(6)
                 .whileTrue(runEnd(() -> c_ElevatorOverride.liftVolts(-6), () -> c_ElevatorOverride.liftVolts(0))); // down
-        m_buttons.button(7)
+        m_operatorbuttons.button(7)
                 .whileTrue(runEnd(() -> c_ElevatorOverride.tiltVolts(3), () -> c_ElevatorOverride.tiltVolts(0))); // up
-        m_buttons.button(8)
+        m_operatorbuttons.button(8)
                 .whileTrue(runEnd(() -> c_ElevatorOverride.tiltVolts(-3), () -> c_ElevatorOverride.tiltVolts(0))); // down
 
         // manipulator in and out commands
-        m_buttons.button(9).onTrue(c_ManipIntake);
-        m_buttons.button(11).onTrue(c_ManipOuttake);
+        m_operatorbuttons.button(9).onTrue(c_ManipIntake);
+        m_operatorbuttons.button(11).onTrue(c_ManipOuttake);
 
         // elevator CL setpoint commands
-        m_buttons.button(5).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseL4);
-        m_buttons.button(6).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseL3);
-        m_buttons.button(7).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseL2);
-        m_buttons.button(8).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseL1);
+        m_operatorbuttons.button(5).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseL4);
+        m_operatorbuttons.button(6).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseL3);
+        m_operatorbuttons.button(7).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseL2);
+        m_operatorbuttons.button(8).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseL1);
 
         // home routines
-        m_buttons.button(10).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_OutBackHome);
-        m_buttons.button(12).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseHome);
+        m_operatorbuttons.button(10).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_OutBackHome);
+        m_operatorbuttons.button(12).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseHome);
 
-        // homing routine
-        //m_buttons.button(11).and(() -> m_buttons.button(12). getAsBoolean()).onTrue(null);
+        // heading setpoint buttons
+        m_driverbuttons.button(5).onTrue(runOnce(() -> headingtransformed = Math.PI));
+        m_driverbuttons.button(6).onTrue(runOnce(() -> headingtransformed = 0));
+        m_driverbuttons.button(7).onTrue(runOnce(() -> headingtransformed = 0));
+        m_driverbuttons.button(8).onTrue(runOnce(() -> headingtransformed = 0));
+        m_driverbuttons.button(9).onTrue(runOnce(() -> headingtransformed = 0));
+        m_driverbuttons.button(10).onTrue(runOnce(() -> headingtransformed = 0));
+        m_driverbuttons.button(11).onTrue(runOnce(() -> headingtransformed = 0));
+        m_driverbuttons.button(12).onTrue(runOnce(() -> headingtransformed = 0));
 
     }
 
@@ -308,12 +320,21 @@ public class RobotContainer {
 
     public void telemetry() {
         m_field.setRobotPose(m_robotDrive.getPose());
+        SmartDashboard.putData("odometry field", m_field);
+
+        SmartDashboard.putNumber("odometry pose X", m_robotDrive.getPose().getX());
+        SmartDashboard.putNumber("odometry pose Y", m_robotDrive.getPose().getY());
+        SmartDashboard.putNumber("odometry pose Z", m_robotDrive.getPose().getRotation().getRadians());
+
+        SmartDashboard.putNumber("vision pose X", m_LLvision.getVisionPose().getX());
+        SmartDashboard.putNumber("vision pose Y", m_LLvision.getVisionPose().getY());
+        SmartDashboard.putNumber("vision pose Z", m_LLvision.getVisionPose().getRotation().getRotations());
+
         SmartDashboard.putNumber("Voltage", pdh.getVoltage());
 
         // Chassis Speeds
         SmartDashboard.putNumber("Velocity", Math.sqrt(Math.pow(m_robotDrive.getSpeeds().vxMetersPerSecond, 2)
                 + Math.pow(m_robotDrive.getSpeeds().vyMetersPerSecond, 2)));
-        SmartDashboard.putData(m_field);
 
         // Elevator Encoders
         double[] ElevatorEncoders = m_ElevatorLift.getEncoderPositions();
