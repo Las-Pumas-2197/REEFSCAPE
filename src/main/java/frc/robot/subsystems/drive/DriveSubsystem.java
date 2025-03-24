@@ -16,6 +16,7 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -71,16 +72,23 @@ public class DriveSubsystem extends SubsystemBase {
 
   // PP configuration
   private RobotConfig robotConfig;
+  private final SimpleMotorFeedforward headingFeedForward;
   private final ProfiledPIDController headingController;
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
+
+    //heading feedforward and controller
+    headingFeedForward = new SimpleMotorFeedforward(AutoConstants.kHeadingFFkS, AutoConstants.kHeadingFFkV);
     headingController = new ProfiledPIDController(
         AutoConstants.kPRotationController,
         0, AutoConstants.kDRotationController,
         AutoConstants.kThetaControllerConstraints);
 
+    //heading controller optionss
     headingController.enableContinuousInput(-Math.PI, Math.PI);
+    headingController.setTolerance(0.1);
+
     // Usage reporting for MAXSwerve template
     HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_MaxSwerve);
 
@@ -175,13 +183,12 @@ public class DriveSubsystem extends SubsystemBase {
    * @param fieldRelative Whether the provided x and y speeds are relative to the
    *                      field.
    */
-  public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rotationCorrection,
-      double desiredHeading) {
+  public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rotationCorrection,double desiredHeading) {
 
     // heading correction conditional
     double rotDelivered;
     if (rotationCorrection == true) {
-      rotDelivered = headingController.calculate(getHeading(), desiredHeading);
+      rotDelivered = headingController.calculate(getHeading(), desiredHeading) + headingFeedForward.calculate(headingController.getSetpoint().velocity);
     } else {
       rotDelivered = rot * DriveConstants.kMaxAngularSpeed;
     }

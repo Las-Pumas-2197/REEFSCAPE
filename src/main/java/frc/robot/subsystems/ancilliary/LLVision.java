@@ -69,6 +69,10 @@ public class LLVision extends SubsystemBase {
             rejectVisionUpdate = true;
         }
 
+        if (visionPoseLL1.avgTagDist > 2) {
+            rejectVisionUpdate = true;
+        }
+
         if(!rejectVisionUpdate) {
             m_robotDrive.updateVisionMeasurement(visionPoseLL1);
         }

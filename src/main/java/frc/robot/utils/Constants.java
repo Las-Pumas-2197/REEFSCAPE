@@ -95,14 +95,18 @@ public final class Constants {
     public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
     public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
     public static final double kPTranslationController = 7;
-    public static final double kDTranslationController = 1;
+    public static final double kDTranslationController = 0;
     public static final double kPRotationController = 7;
-    public static final double kDRotationController = 1;
+    public static final double kDRotationController = 0;
 
     // Constraint for the motion profiled robot angle controller
     public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(
         kMaxAngularSpeedRadiansPerSecond, 
         kMaxAngularSpeedRadiansPerSecondSquared);
+
+    public static final double kMaxAngularVelRadsPerSecond = 1.905*(2*Math.PI);
+    public static final double kHeadingFFkV = 12 / kMaxAngularVelRadsPerSecond;
+    public static final double kHeadingFFkS = 0.1;
   }
 
   public static final class NeoMotorConstants {

@@ -14,8 +14,7 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -56,7 +55,6 @@ public class RobotContainer {
     private final ElevatorTilt m_ElevatorTilt = new ElevatorTilt();
     private final ManipulatorWrist m_ManipulatorWrist = new ManipulatorWrist();
     private final ManipulatorSpike m_ManipulatorSpike = new ManipulatorSpike();
-    private final PowerDistribution pdh = new PowerDistribution(1, ModuleType.kRev);
     private final LLVision m_LLvision = new LLVision(m_robotDrive);
 
     // subclassed commands
@@ -156,6 +154,7 @@ public class RobotContainer {
     private double headingtransformed;
     private boolean useHeadingCorrection;
     private boolean fieldOriented;
+    private double drivespeedmult;
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -205,6 +204,7 @@ public class RobotContainer {
         useHeadingCorrection = false;
         fieldOriented = true;
         headingtransformed = 0;
+        drivespeedmult = 1;
 
         // Configure default commands
 
@@ -216,10 +216,10 @@ public class RobotContainer {
                         () -> m_robotDrive.drive(
                                 -Math.pow(
                                         MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriveDeadband),
-                                        OIConstants.kDriveAxisExponent),
+                                        OIConstants.kDriveAxisExponent) * drivespeedmult,
                                 -Math.pow(
                                         MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriveDeadband),
-                                        OIConstants.kDriveAxisExponent),
+                                        OIConstants.kDriveAxisExponent) * drivespeedmult,
                                 -Math.pow(
                                         MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriveDeadband),
                                         OIConstants.kDriveAxisExponent),
@@ -251,6 +251,7 @@ public class RobotContainer {
 
         // runs first lambda when depressed, runs second lambda when released
         m_driverController.y().whileTrue(runEnd(() -> fieldOriented = false, () -> fieldOriented = true));
+        m_driverController.y().whileTrue(runEnd(() -> drivespeedmult = 0.15, () -> drivespeedmult = 1));
 
         // runs every time right stick becomes true, functions as toggle
         m_driverController.b().onTrue(runOnce(() -> useHeadingCorrection = useHeadingCorrection ? false : true));
@@ -302,14 +303,14 @@ public class RobotContainer {
         m_operatorbuttons.button(12).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseHome);
 
         // heading setpoint buttons
-        m_driverbuttons.button(5).onTrue(runOnce(() -> headingtransformed = Math.PI));
-        m_driverbuttons.button(6).onTrue(runOnce(() -> headingtransformed = 0));
-        m_driverbuttons.button(7).onTrue(runOnce(() -> headingtransformed = 0));
-        m_driverbuttons.button(8).onTrue(runOnce(() -> headingtransformed = 0));
-        m_driverbuttons.button(9).onTrue(runOnce(() -> headingtransformed = 0));
-        m_driverbuttons.button(10).onTrue(runOnce(() -> headingtransformed = 0));
-        m_driverbuttons.button(11).onTrue(runOnce(() -> headingtransformed = 0));
-        m_driverbuttons.button(12).onTrue(runOnce(() -> headingtransformed = 0));
+        m_driverbuttons.button(5).onTrue(runOnce(() -> headingtransformed = Units.degreesToRadians(-60)));
+        m_driverbuttons.button(6).onTrue(runOnce(() -> headingtransformed = Units.degreesToRadians(-120)));
+        m_driverbuttons.button(7).onTrue(runOnce(() -> headingtransformed = Units.degreesToRadians(180)));
+        m_driverbuttons.button(8).onTrue(runOnce(() -> headingtransformed = Units.degreesToRadians(120)));
+        m_driverbuttons.button(9).onTrue(runOnce(() -> headingtransformed = Units.degreesToRadians(60)));
+        m_driverbuttons.button(10).onTrue(runOnce(() -> headingtransformed = Units.degreesToRadians(0)));
+        m_driverbuttons.button(11).onTrue(runOnce(() -> headingtransformed = Units.degreesToRadians(-125)));
+        m_driverbuttons.button(12).onTrue(runOnce(() -> headingtransformed = Units.degreesToRadians(125)));
 
     }
 
@@ -330,35 +331,9 @@ public class RobotContainer {
         SmartDashboard.putNumber("vision pose Y", m_LLvision.getVisionPose().getY());
         SmartDashboard.putNumber("vision pose Z", m_LLvision.getVisionPose().getRotation().getRotations());
 
-        SmartDashboard.putNumber("Voltage", pdh.getVoltage());
-
-        // Chassis Speeds
-        SmartDashboard.putNumber("Velocity", Math.sqrt(Math.pow(m_robotDrive.getSpeeds().vxMetersPerSecond, 2)
-                + Math.pow(m_robotDrive.getSpeeds().vyMetersPerSecond, 2)));
-
         // Elevator Encoders
         double[] ElevatorEncoders = m_ElevatorLift.getEncoderPositions();
         SmartDashboard.putNumber("Elevator Encoder Avg", ElevatorEncoders[2]);
         SmartDashboard.putNumber("Manipulator Position", m_ManipulatorWrist.getAngle());
-
-        // elevator limit switches
-        SmartDashboard.putBoolean("lower limit", m_ElevatorLift.getSwitchStatuses()[0]);
-        SmartDashboard.putBoolean("upper limit", m_ElevatorLift.getSwitchStatuses()[1]);
-
-        // manipulator and elevator setpoint
-        SmartDashboard.putBoolean("manipulator at setpoint", m_ManipulatorWrist.atSetpoint());
-        SmartDashboard.putBoolean("elevator at setpoint", m_ElevatorLift.atSetpoint());
-
-        // current commands for subsytems
-        SmartDashboard.putData(m_ElevatorTilt.getCurrentCommand());
-        SmartDashboard.putData(m_ElevatorLift.getCurrentCommand());
-        SmartDashboard.putData(m_ManipulatorWrist.getCurrentCommand());
-        SmartDashboard.putData(m_ManipulatorSpike.getCurrentCommand());
-        
-        // commands scheduled
-        SmartDashboard.putBoolean("elevatorMain scheduled", c_ElevatorMain.isScheduled());
-        SmartDashboard.putBoolean("elevatorManual scheduled", c_ElevatorOverride.isScheduled());
-        SmartDashboard.putBoolean("manipintake scheduled", c_ManipIntake.isScheduled());
-        SmartDashboard.putBoolean("manipouttake scheduled", c_ManipOuttake.isScheduled());
     }
 }
