@@ -28,7 +28,7 @@ public final class Constants {
   public static final class DriveConstants {
     // Driving Parameters - Note that these are not the maximum capable speeds of
     // the robot, rather the allowed maximum speeds
-    public static final double kMaxSpeedMetersPerSecond = 5.74;
+    public static final double kMaxSpeedMetersPerSecond = 4.92;
     public static final double kMaxAccelerationMetersPerSecond = 3;
     public static final double kMaxAngularSpeed = 2 * Math.PI; // radians per second
 
@@ -67,7 +67,7 @@ public final class Constants {
     // The MAXSwerve module can be configured with one of three pinion gears: 12T,
     // 13T, or 14T. This changes the drive speed of the module (a pinion gear with
     // more teeth will result in a robot that drives faster).
-    public static final int kDrivingMotorPinionTeeth = 14;
+    public static final int kDrivingMotorPinionTeeth = 12;
 
     // Calculations required for driving motor conversion factors and feed forward
     public static final double kDrivingMotorFreeSpeedRps = NeoMotorConstants.kFreeSpeedRpm / 60;
@@ -104,7 +104,7 @@ public final class Constants {
         kMaxAngularSpeedRadiansPerSecond, 
         kMaxAngularSpeedRadiansPerSecondSquared);
 
-    public static final double kMaxAngularVelRadsPerSecond = 1.905*(2*Math.PI);
+    public static final double kMaxAngularVelRadsPerSecond = 1.645*(2*Math.PI);
     public static final double kHeadingFFkV = 12 / kMaxAngularVelRadsPerSecond;
     public static final double kHeadingFFkS = 0.1;
   }
@@ -112,7 +112,8 @@ public final class Constants {
   public static final class NeoMotorConstants {
     public static final double kFreeSpeedRpm = 6784;
   }
-  public static final class VisionConstants{
+
+  public static final class VisionConstants {
 
     //string names for lime lights
     public static final String vis_LL1name = "limelight";
@@ -130,7 +131,7 @@ public final class Constants {
         19,
         20,
         21,
-        22 //set according to what tags should be observed
+        22 //set according to what tags should be observed, reef only currently
     };
 
     //position of LL1 in 3d space in robot, center origin, NWU/CCW+ convention

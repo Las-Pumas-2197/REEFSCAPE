@@ -39,7 +39,7 @@ public final class Configs {
                                 .idleMode(IdleMode.kBrake)
                                 .smartCurrentLimit(20);
                         turningConfig.absoluteEncoder
-                                // Invert the turning encoder, since the output shaft rotates in the opposite
+                                 // Invert the turning encoder, since the output shaft rotates in the opposite
                                 // direction of the steering motor in the MAXSwerve Module.
                                 .inverted(true)
                                 .positionConversionFactor(turningFactor) // radians
@@ -74,7 +74,6 @@ public final class Configs {
                                 .positionConversionFactor(ElevatorLiftConstants.elev_posfactor)
                                 .velocityConversionFactor(ElevatorLiftConstants.elev_velfactor);
                 }
-
         }
 
         public static final class ManipulatorConfigs {
