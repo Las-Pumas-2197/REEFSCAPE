@@ -12,8 +12,7 @@ import com.pathplanner.lib.events.EventTrigger;
 
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -115,6 +114,12 @@ public class RobotContainer {
     private final RunCommand c_bumpright = new RunCommand(
             () -> m_robotDrive.drive(0.0, -0.1, 0.0, false, false, 0), m_robotDrive);
 
+    private final RunCommand c_bumpfwd = new RunCommand(
+            () -> m_robotDrive.drive(0.1, 0, 0.0, false, false, 0), m_robotDrive);
+
+    private final RunCommand c_bumprev = new RunCommand(
+            () -> m_robotDrive.drive(-0.1, 0, 0.0, false, false, 0), m_robotDrive);
+
     //de-algae routines
     private final SequentialCommandGroup c_DeAlgae1 = new SequentialCommandGroup(
             c_PoseDealgae1High,
@@ -189,8 +194,8 @@ public class RobotContainer {
 
         // add autos and post chooser to smart dashboard
         // setDefaultOption() functions same as addOption, except it sets auto as default
-        autoChooser.setDefaultOption("1 Coral Right", AutoBuilder.buildAuto("Auto A"));
-        //autoChooser.addOption("2 Coral Right", AutoBuilder.buildAuto("2 Coral Right"));
+        autoChooser.setDefaultOption("2 Coral Right", AutoBuilder.buildAuto("Auto A"));
+        autoChooser.addOption("1 Coral Right", AutoBuilder.buildAuto("Auto B"));
         SmartDashboard.putData("Auto Selector", autoChooser);
 
         // Configure the button bindings
@@ -204,7 +209,7 @@ public class RobotContainer {
         useHeadingCorrection = false;
         fieldOriented = true;
         headingtransformed = 0;
-        drivespeedmult = 1;
+        drivespeedmult = 0.5;
 
         // Configure default commands
 
@@ -247,11 +252,13 @@ public class RobotContainer {
         // zero heading and odometry as needed
         m_driverController.a().onTrue(runOnce(() -> m_robotDrive.zeroHeading()));
 
-        m_driverController.x().onTrue(runOnce(() -> m_robotDrive.resetOdometry(new Pose2d(7.6, 0.47, new Rotation2d(Math.PI)))));
+        m_driverController.x().onTrue(c_ElevatorLock);
 
         // runs first lambda when depressed, runs second lambda when released
         m_driverController.y().whileTrue(runEnd(() -> fieldOriented = false, () -> fieldOriented = true));
-        m_driverController.y().whileTrue(runEnd(() -> drivespeedmult = 0.15, () -> drivespeedmult = 1));
+        m_driverController.y().whileTrue(runEnd(() -> drivespeedmult = 0.15, () -> drivespeedmult = 0.5));
+
+        m_driverController.leftBumper().whileTrue(runEnd(() -> drivespeedmult = 1, () -> drivespeedmult = 0.5));
 
         // runs every time right stick becomes true, functions as toggle
         m_driverController.b().onTrue(runOnce(() -> useHeadingCorrection = useHeadingCorrection ? false : true));
@@ -268,6 +275,8 @@ public class RobotContainer {
         //bump left and right for positioning
         m_driverController.povLeft().whileTrue(c_bumpleft);
         m_driverController.povRight().whileTrue(c_bumpright);
+        m_driverController.povUp().whileTrue(c_bumpfwd);
+        m_driverController.povDown().whileTrue(c_bumprev);
 
         // schedule override command, should default back to automatic when canceled
         m_operatorbuttons.button(2).whileTrue(c_ElevatorOverride); // run command when override is enabled, should override main

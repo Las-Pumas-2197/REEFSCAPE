@@ -86,7 +86,7 @@ public final class Constants {
     public static final int kDriverButtonsPort = 2;
     public static final double kDriveDeadband = 0.05;
     public static final double kHeadingIncMult = 0.04;
-    public static final double kDriveAxisExponent = 3;
+    public static final double kDriveAxisExponent = 1;
   }
 
   public static final class AutoConstants {
@@ -144,7 +144,7 @@ public final class Constants {
         0 //yaw (left/right)
     };
 
-    public static final Vector<N3> vis_stddevs = VecBuilder.fill(0.5,0.5,9999999);
+    public static final Vector<N3> vis_stddevs = VecBuilder.fill(0.6,0.6,9999999);
   }
   public static final class ElevatorLiftConstants {
     //node IDs
@@ -209,7 +209,7 @@ public final class Constants {
     public static final double wrist_L1angle = 0;
     public static final double wrist_L2angle = -0.7;
     public static final double wrist_L3angle = -0.7;
-    public static final double wrist_L4angle = -0.65;
+    public static final double wrist_L4angle = -0.67;
     public static final double wrist_dealgae1angle = 0;
     public static final double wrist_dealgae2angle = 0;
     public static final double wrist_homeangle = 1.1;

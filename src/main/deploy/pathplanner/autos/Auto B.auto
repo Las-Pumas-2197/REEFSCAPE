@@ -11,12 +11,6 @@
           }
         },
         {
-          "type": "wait",
-          "data": {
-            "waitTime": 0.25
-          }
-        },
-        {
           "type": "named",
           "data": {
             "name": "Outtake Cmd"
@@ -44,24 +38,6 @@
           "type": "named",
           "data": {
             "name": "Intake Cmd"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Approach 2A"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 0.25
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Outtake Cmd"
           }
         }
       ]

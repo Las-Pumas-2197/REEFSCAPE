@@ -24,10 +24,8 @@ public class elevatorLock extends Command {
 
     //declare and reset timer
     onTimer = new Timer();
-    onTimer.reset();
 
     //finished booean, ends command when true
-    finished = false;
   }
 
   @Override
@@ -38,6 +36,9 @@ public class elevatorLock extends Command {
     
     //set volts to 6
     m_ElevatortTilt.tilt(6);
+
+    //finished false
+    finished = false;
   }
 
   @Override
@@ -55,6 +56,7 @@ public class elevatorLock extends Command {
     //stop timer and stop motor when ending
     onTimer.stop();
     m_ElevatortTilt.tilt(0);
+    onTimer.reset();
   }
 
   @Override

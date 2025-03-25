@@ -188,7 +188,7 @@ public class DriveSubsystem extends SubsystemBase {
     // heading correction conditional
     double rotDelivered;
     if (rotationCorrection == true) {
-      rotDelivered = headingController.calculate(getHeading(), desiredHeading) + headingFeedForward.calculate(headingController.getSetpoint().velocity);
+      rotDelivered = MathUtil.applyDeadband(headingController.calculate(getHeading(), desiredHeading) + headingFeedForward.calculate(headingController.getSetpoint().velocity), 0.1);
     } else {
       rotDelivered = rot * DriveConstants.kMaxAngularSpeed;
     }
