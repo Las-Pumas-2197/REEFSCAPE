@@ -144,7 +144,7 @@ public final class Constants {
         0 //yaw (left/right)
     };
 
-    public static final Vector<N3> vis_stddevs = VecBuilder.fill(0.6,0.6,9999999);
+    public static final Vector<N3> vis_stddevs = VecBuilder.fill(0.7,0.7,9999999);
   }
   public static final class ElevatorLiftConstants {
     //node IDs
@@ -196,23 +196,27 @@ public final class Constants {
     //reef height calibration data
     public static final double elev_L1height = 0.3;
     public static final double elev_L2height = 0.8;
-    public static final double elev_L3height = 1.2;
-    public static final double elev_L4height = 1.84;
+    public static final double elev_L3height = 1.15;
+    public static final double elev_L4height = 1.85;
     public static final double elev_dealgae1lowheight = 0.3;
-    public static final double elev_dealgae1highheight = 0.6;
+    public static final double elev_dealgae1highheight = 0.65;
     public static final double elev_dealgae2lowheight = 0.7;
-    public static final double elev_dealgae2highheight = 1;
+    public static final double elev_dealgae2highheight = 1.05;
     public static final double elev_homeheight= 0;
+    public static final double elev_loadheight = 0.35; //0.225
     public static final double elev_maxheight = 1.9;
+
     //reef angle calibration data
     public static final double wrist_startangle = 1;
     public static final double wrist_L1angle = 0;
-    public static final double wrist_L2angle = -0.7;
-    public static final double wrist_L3angle = -0.7;
-    public static final double wrist_L4angle = -0.67;
+    public static final double wrist_L2angle = -0.75;
+    public static final double wrist_L3angle = -0.75;
+    public static final double wrist_L4angle = -0.9;
+    public static final double wrist_L4angleaim = -0.8;
     public static final double wrist_dealgae1angle = 0;
     public static final double wrist_dealgae2angle = 0;
     public static final double wrist_homeangle = 1.1;
+    public static final double wrist_loadangle = 0.25;
   }
 
   //these must be measured and adjusted accordingly, angles for heading control

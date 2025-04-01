@@ -78,12 +78,23 @@ public class RobotContainer {
     private final InstantCommand c_PoseL4 = new InstantCommand(
             () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L4height, ElevatorCalibration.wrist_L4angle));
 
+    private final InstantCommand c_PoseL4aim = new InstantCommand(
+            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L4height, ElevatorCalibration.wrist_L4angleaim));
+
+    private final InstantCommand c_PoseLoad = new InstantCommand(
+            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_loadheight, ElevatorCalibration.wrist_loadangle));
+
     // sequential command to back up and home
     private final SequentialCommandGroup c_OutBackHome = new SequentialCommandGroup(
             new manipOuttake(m_ManipulatorSpike),
-            run(() -> m_robotDrive.drive(-0.1, 0, 0, false, false, 0), m_robotDrive)
-                    .withTimeout(1),
+            run(() -> m_robotDrive.drive(-0.25, 0, 0, false, false, 0), m_robotDrive)
+                    .withTimeout(0.5),
             new InstantCommand(() -> c_ElevatorMain.setReference(ElevatorCalibration.elev_homeheight, ElevatorCalibration.wrist_homeangle)));
+
+    private final SequentialCommandGroup c_HomeIntake = new SequentialCommandGroup(
+            new InstantCommand(() -> c_ElevatorMain.setReference(ElevatorCalibration.elev_homeheight, ElevatorCalibration.wrist_homeangle)),
+            waitSeconds(0.5),
+            new manipIntake(m_ManipulatorSpike));
 
 
     // commands for setting elevator pose for de-algae routines
@@ -195,6 +206,8 @@ public class RobotContainer {
         // setDefaultOption() functions same as addOption, except it sets auto as default
         autoChooser.setDefaultOption("2 Coral Right", AutoBuilder.buildAuto("Auto A"));
         autoChooser.addOption("1 Coral Right", AutoBuilder.buildAuto("Auto B"));
+        autoChooser.addOption("Leave Left", AutoBuilder.buildAuto("Leave A"));
+        autoChooser.addOption("Leave Middle", AutoBuilder.buildAuto("Leave B"));
         SmartDashboard.putData("Auto Selector", autoChooser);
 
         // Configure the button bindings
@@ -297,17 +310,18 @@ public class RobotContainer {
                 .whileTrue(runEnd(() -> c_ElevatorOverride.tiltVolts(-3), () -> c_ElevatorOverride.tiltVolts(0))); // down
 
         // manipulator in and out commands
-        m_operatorbuttons.button(9).onTrue(c_ManipIntake);
-        m_operatorbuttons.button(11).onTrue(c_ManipOuttake);
+        m_operatorbuttons.button(9).onTrue(c_HomeIntake);
+        m_operatorbuttons.button(10).onTrue(c_OutBackHome);
 
         // elevator CL setpoint commands
         m_operatorbuttons.button(5).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseL4);
+
         m_operatorbuttons.button(6).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseL3);
         m_operatorbuttons.button(7).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseL2);
         m_operatorbuttons.button(8).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseL1);
 
         // home routines
-        m_operatorbuttons.button(10).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_OutBackHome);
+        m_operatorbuttons.button(11).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseLoad);
         m_operatorbuttons.button(12).and(() -> !c_ElevatorOverride.isScheduled()).onFalse(c_PoseHome);
 
         // heading setpoint buttons

@@ -54,7 +54,7 @@ public class LLVision extends SubsystemBase {
         );
 
         //MUST USE BLUE ORIGIN!!!!!!!!!!!!!
-        LimelightHelpers.PoseEstimate visionPoseLL1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(
+        LimelightHelpers.PoseEstimate visionPoseLL1 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(
             VisionConstants.vis_LL1name
         );
 
