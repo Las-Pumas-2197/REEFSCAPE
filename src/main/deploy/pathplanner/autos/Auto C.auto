@@ -5,15 +5,21 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "Lock Cmd"
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "Approach 1A"
+            "pathName": "Approach 3A"
           }
         },
         {
           "type": "wait",
           "data": {
-            "waitTime": 2.0
+            "waitTime": 3.0
           }
         },
         {
@@ -23,33 +29,15 @@
           }
         },
         {
-          "type": "wait",
+          "type": "path",
           "data": {
-            "waitTime": 0.25
+            "pathName": "Back Out 1A"
           }
         },
         {
           "type": "named",
           "data": {
             "name": "Home Cmd"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Coral Station 1A"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 1.0
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Intake Cmd"
           }
         }
       ]

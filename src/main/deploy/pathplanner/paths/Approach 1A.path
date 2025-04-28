@@ -16,12 +16,12 @@
     },
     {
       "anchor": {
-        "x": 5.251,
-        "y": 3.048
+        "x": 5.275,
+        "y": 3.0
       },
       "prevControl": {
-        "x": 5.6922500000000005,
-        "y": 2.6922499999999996
+        "x": 5.7162500000000005,
+        "y": 2.6442499999999995
       },
       "nextControl": null,
       "isLocked": false,
@@ -58,7 +58,7 @@
       "command": null
     },
     {
-      "name": "L2 Event",
+      "name": "L4 Event",
       "waypointRelativePos": 0.2515212981744415,
       "endWaypointRelativePos": null,
       "command": null

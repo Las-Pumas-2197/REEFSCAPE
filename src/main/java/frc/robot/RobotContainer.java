@@ -208,6 +208,7 @@ public class RobotContainer {
         autoChooser.addOption("1 Coral Right", AutoBuilder.buildAuto("Auto B"));
         autoChooser.addOption("Leave Left", AutoBuilder.buildAuto("Leave A"));
         autoChooser.addOption("Leave Middle", AutoBuilder.buildAuto("Leave B"));
+        autoChooser.addOption("1 Coral Middle", AutoBuilder.buildAuto("Auto C"));
         SmartDashboard.putData("Auto Selector", autoChooser);
 
         // Configure the button bindings
