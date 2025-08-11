@@ -196,8 +196,8 @@ public final class Constants {
     //reef height calibration data
     public static final double elev_L1height = 0.3;
     public static final double elev_L2height = 0.8;
-    public static final double elev_L3height = 1.15;
-    public static final double elev_L4height = 1.85;
+    public static final double elev_L3height = 1.20;
+    public static final double elev_L4height = 1.88;
     public static final double elev_dealgae1lowheight = 0.3;
     public static final double elev_dealgae1highheight = 0.65;
     public static final double elev_dealgae2lowheight = 0.7;

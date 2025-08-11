@@ -17,7 +17,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DataLogManager;
-
+import edu.wpi.first.wpilibj.Timer;
 import frc.robot.commands.elevator.manipIntake;
 import frc.robot.commands.elevator.elevatorLock;
 import frc.robot.commands.elevator.elevatorMain;
@@ -46,7 +46,7 @@ public class RobotContainer {
             OIConstants.kDriverControllerPort);
     private final CommandJoystick m_operatorbuttons = new CommandJoystick(OIConstants.kOperatorButtonsPort);
     private final CommandJoystick m_driverbuttons = new CommandJoystick(OIConstants.kDriverButtonsPort);
-
+    private final Timer debounceTimer;
     // The robot's subsystems
     private final DriveSubsystem m_robotDrive = new DriveSubsystem();
     private final ElevatorLift m_ElevatorLift = new ElevatorLift();
@@ -70,7 +70,7 @@ public class RobotContainer {
             () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L1height, ElevatorCalibration.wrist_L1angle));
 
     private final InstantCommand c_PoseL2 = new InstantCommand(
-            () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L2height, ElevatorCalibration.wrist_L2angle));
+            () ->  c_ElevatorMain.setReference(ElevatorCalibration.elev_L2height, ElevatorCalibration.wrist_L2angle));
 
     private final InstantCommand c_PoseL3 = new InstantCommand(
             () -> c_ElevatorMain.setReference(ElevatorCalibration.elev_L3height, ElevatorCalibration.wrist_L3angle));
@@ -170,6 +170,7 @@ public class RobotContainer {
     private boolean useHeadingCorrection;
     private boolean fieldOriented;
     private double drivespeedmult;
+    private boolean debounce = false;
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -178,7 +179,7 @@ public class RobotContainer {
         m_LLvision.register();
         // start datalog
         DataLogManager.start();
-
+        debounceTimer = new Timer();
         // run autobuilder for drivetrain
         m_robotDrive.runAutoBuilder();
 
@@ -265,7 +266,7 @@ public class RobotContainer {
         // zero heading and odometry as needed
         m_driverController.a().onTrue(runOnce(() -> m_robotDrive.zeroHeading()));
 
-        m_driverController.x().onTrue(c_ElevatorLock);
+        //m_driverController.x().onTrue(c_ElevatorLock);
 
         // runs first lambda when depressed, runs second lambda when released
         m_driverController.y().whileTrue(runEnd(() -> fieldOriented = false, () -> fieldOriented = true));
@@ -299,7 +300,6 @@ public class RobotContainer {
                 .onFalse(c_DeAlgae1);
         m_operatorbuttons.button(3).and(() -> !c_ElevatorOverride.isScheduled()).onTrue(c_PoseDealgae2Low)
                 .onFalse(c_DeAlgae2);
-
         // buttons for override command
         m_operatorbuttons.button(5)
                 .whileTrue(runEnd(() -> c_ElevatorOverride.liftVolts(6), () -> c_ElevatorOverride.liftVolts(0))); // up
@@ -358,5 +358,13 @@ public class RobotContainer {
         double[] ElevatorEncoders = m_ElevatorLift.getEncoderPositions();
         SmartDashboard.putNumber("Elevator Encoder Avg", ElevatorEncoders[2]);
         SmartDashboard.putNumber("Manipulator Position", m_ManipulatorWrist.getAngle());
+        //NOT TELEMETRY
+        if(debounce == true){
+                if(debounceTimer.get() >= 5){
+                        debounceTimer.stop();
+                        debounceTimer.reset();
+                        debounce = false;
+         }
+        }
     }
 }
